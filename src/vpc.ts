@@ -62,7 +62,7 @@ export class VPC implements IResourceGenerator {
                     }
                 }
             },
-        }, this.generateSubnets(subnets));
+        }, ...this.generateSubnets(subnets));
     }
 
     private generateSubnets(subnets: string[]): any[] {

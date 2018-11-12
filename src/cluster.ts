@@ -8,6 +8,7 @@ export class Cluster implements IResourceGenerator {
     private readonly options: IPluginOptions;
 
     public constructor(options: IPluginOptions, vpc: VPC) {
+        this.options = options;
         this.vpc = vpc;
     }
 

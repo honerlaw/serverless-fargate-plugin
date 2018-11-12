@@ -3,7 +3,7 @@ import {Cluster} from "./cluster";
 
 export class Service implements IResourceGenerator {
 
-    private static readonly EXECUTION_ROLE_NAME: string = "";
+    private static readonly EXECUTION_ROLE_NAME: string = "ECSServiceExecutionRole";
 
     private readonly cluster: Cluster;
     private readonly options: IServiceOptions;
@@ -152,7 +152,7 @@ export class Service implements IResourceGenerator {
                     "ListenerArn": {
                         "Ref": "PublicLoadBalancerListener"
                     },
-                    "Priority": this.options.priority
+                    "Priority": this.options.priority ? this.options.priority : 1
                 }
             }
         };
@@ -207,7 +207,7 @@ export class Service implements IResourceGenerator {
 
     private getExecutionRoleValue(): string | object {
         const executionRoleArn: string | undefined = this.cluster.getExecutionRoleArn();
-        if (executionRoleArn) {
+        if (!executionRoleArn) {
             return executionRoleArn;
         }
         return {

@@ -4,11 +4,19 @@ export interface IVPCOptions {
     subnets: string[];
 }
 
+export interface IServiceProtocol {
+    protocol: "HTTP" | "HTTPS";
+    healthCheckUri?: string; // defaults to "/"
+    healthCheckProtocol?: string; // defaults to "HTTP"
+}
+
 export interface IServiceOptions {
     name: string;
     cpu: number;
     memory: number;
     port: number;
+    entryPoint: string[];
+    protocols: IServiceProtocol[];
     imageRepository?: string;
     imageTag?: string;
     priority?: number; // priority for routing, defaults to 1

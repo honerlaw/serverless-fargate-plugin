@@ -1,4 +1,4 @@
-import {IResourceGenerator, IServiceOptions} from "./definitions";
+import {IResourceGenerator, IServiceOptions, IServiceProtocol} from "./definitions";
 import {Cluster} from "./cluster";
 
 export class Service implements IResourceGenerator {
@@ -13,6 +13,10 @@ export class Service implements IResourceGenerator {
         this.options = options;
     }
 
+    public getTargetGroupNames(): string[] {
+        return this.options.protocols.map((protocol: IServiceProtocol): string => `${protocol.protocol}TargetGroup`);
+    }
+
     public generate(): any {
         const executionRole: any | undefined = this.cluster.getExecutionRoleArn() ? undefined : this.generateExecutionRole();
 
@@ -20,7 +24,7 @@ export class Service implements IResourceGenerator {
             {},
             this.generateService(),
             this.generateTaskDefinition(),
-            this.generateTargetGroup(),
+            ...this.generateTargetGroups(),
             this.generateLoadBalancerRule(),
             executionRole // could be undefined, so set it last
         );
@@ -59,15 +63,13 @@ export class Service implements IResourceGenerator {
                     "TaskDefinition": {
                         "Ref": "TaskDefinition"
                     },
-                    "LoadBalancers": [
-                        {
-                            "ContainerName": this.options.name,
-                            "ContainerPort": this.options.port,
-                            "TargetGroupArn": {
-                                "Ref": "TargetGroup"
-                            }
+                    "LoadBalancers": this.getTargetGroupNames().map((targetGroupName: string): any => ({
+                        "ContainerName": this.options.name,
+                        "ContainerPort": this.options.port,
+                        "TargetGroupArn": {
+                            "Ref": targetGroupName
                         }
-                    ]
+                    }))
                 }
             },
         };
@@ -94,7 +96,8 @@ export class Service implements IResourceGenerator {
                             "Name": this.options.name,
                             "Cpu": this.options.cpu,
                             "Memory": this.options.memory,
-                            "Image": `${this.options.imageRepository || this.cluster.getImageRepository()}/${this.options.name}:${this.options.imageTag}`,
+                            "Image": `${this.options.imageRepository || this.cluster.getImageRepository()}:${this.options.name}-${this.options.imageTag}`,
+                            "EntryPoint": this.options.entryPoint,
                             "PortMappings": [
                                 {
                                     "ContainerPort": this.options.port
@@ -107,27 +110,30 @@ export class Service implements IResourceGenerator {
         };
     }
 
-    private generateTargetGroup(): any {
-        return {
-            "TargetGroup": {
+    private generateTargetGroups(): any[] {
+        return this.getTargetGroupNames().map((name: string, index: number): any => {
+            const protocol: IServiceProtocol = this.options.protocols[index];
+            const def: any = {};
+            def[name] = {
                 "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
                 "Properties": {
                     "HealthCheckIntervalSeconds": 6,
-                    "HealthCheckPath": "/",
-                    "HealthCheckProtocol": "HTTP",
+                    "HealthCheckPath": protocol.healthCheckUri ? protocol.healthCheckUri : "/",
+                    "HealthCheckProtocol": protocol.healthCheckProtocol ? protocol.healthCheckProtocol : "HTTP",
                     "HealthCheckTimeoutSeconds": 5,
                     "HealthyThresholdCount": 2,
                     "TargetType": "ip",
                     "Name": this.options.name,
                     "Port": this.options.port,
-                    "Protocol": "HTTP",
+                    "Protocol": protocol.protocol,
                     "UnhealthyThresholdCount": 2,
                     "VpcId": {
                         "Ref": "VPC"
                     }
                 }
-            }
-        };
+            };
+            return def;
+        });
     }
 
     private generateLoadBalancerRule(): any {
@@ -135,14 +141,12 @@ export class Service implements IResourceGenerator {
             "LoadBalancerRule": {
                 "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
                 "Properties": {
-                    "Actions": [
-                        {
-                            "TargetGroupArn": {
-                                "Ref": "TargetGroup"
-                            },
-                            "Type": "forward"
-                        }
-                    ],
+                    "Actions": this.getTargetGroupNames().map((targetGroupName: string): any => ({
+                        "TargetGroupArn": {
+                            "Ref": targetGroupName
+                        },
+                        "Type": "forward"
+                    })),
                     "Conditions": [
                         {
                             "Field": "path-pattern",
@@ -207,7 +211,7 @@ export class Service implements IResourceGenerator {
 
     private getExecutionRoleValue(): string | object {
         const executionRoleArn: string | undefined = this.cluster.getExecutionRoleArn();
-        if (!executionRoleArn) {
+        if (executionRoleArn) {
             return executionRoleArn;
         }
         return {

@@ -21,13 +21,17 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
         this.service = service;
     }
 
+    public getName(namePostFix: NamePostFix): string {
+        return super.getName(namePostFix) + this.options.protocol.toUpperCase();
+    }
+
     public generate(): any {
         if (this.options.protocol === "HTTPS" && (!this.options.certificateArns || this.options.certificateArns.length === 0)) {
             throw new Error('Certificate ARN required for HTTPS');
         }
 
         var def: any = {
-            [this.getName(NamePostFix.TARGET_GROUP, this.options.protocol)]: {
+            [this.getName(NamePostFix.TARGET_GROUP)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
                 "Properties": {
                     "HealthCheckIntervalSeconds": 6,
@@ -45,7 +49,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                     }
                 }
             },
-            [this.getName(NamePostFix.LOAD_BALANCER_LISTENER, this.options.protocol)]: {
+            [this.getName(NamePostFix.LOAD_BALANCER_LISTENER)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::Listener",
                 "DependsOn": [
                     this.cluster.getName(NamePostFix.LOAD_BALANCER)
@@ -54,7 +58,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                     "DefaultActions": [
                         {
                             "TargetGroupArn": {
-                                "Ref": this.getName(NamePostFix.TARGET_GROUP, this.options.protocol)
+                                "Ref": this.getName(NamePostFix.TARGET_GROUP)
                             },
                             "Type": "forward"
                         }
@@ -66,15 +70,15 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                     "Protocol": this.options.protocol
                 }
             },
-            [this.getName(NamePostFix.LOAD_BALANCER_LISTENER_RULE, this.options.protocol)]: {
+            [this.getName(NamePostFix.LOAD_BALANCER_LISTENER_RULE)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
                 "Properties": {
-                    "Actions": {
+                    "Actions": [{
                         "TargetGroupArn": {
-                            "Ref": this.getName(NamePostFix.TARGET_GROUP, this.options.protocol)
+                            "Ref": this.getName(NamePostFix.TARGET_GROUP)
                         },
                         "Type": "forward"
-                    },
+                    }],
                     "Conditions": [
                         {
                             "Field": "path-pattern",
@@ -82,7 +86,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                         }
                     ],
                     "ListenerArn": {
-                        "Ref": this.getName(NamePostFix.LOAD_BALANCER_LISTENER, this.options.protocol)
+                        "Ref": this.getName(NamePostFix.LOAD_BALANCER_LISTENER)
                     },
                     "Priority": this.service.getOptions().priority ? this.service.getOptions().priority : 1
                 }
@@ -90,7 +94,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
         };
 
         if (this.options.protocol === "HTTPS") {
-            def[this.getName(NamePostFix.LOAD_BALANCER_LISTENER, this.options.protocol)].Properties.Certificates = this.options
+            def[this.getName(NamePostFix.LOAD_BALANCER_LISTENER)].Properties.Certificates = this.options
                 .certificateArns.map((certificateArn: string): any => ({
                     "CertificateArn": certificateArn
                 }));

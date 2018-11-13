@@ -35,15 +35,11 @@ export abstract class Resource<T> {
 
     public abstract generate(): any;
 
-    public getName(namePostFix: NamePostFix, ...prefixes: string[]): string {
-        const prefix: string = !prefixes ? '' : prefixes
-            .map((prefix: string): string => prefix.charAt(0).toUpperCase() + prefix.substring(1).toLowerCase())
-            .join('');
-
+    public getName(namePostFix: NamePostFix): string {
         if (this.namePrefix) {
-            return this.namePrefix + namePostFix.toString() + prefix;
+            return this.namePrefix + namePostFix.toString();
         }
-        return namePostFix + prefix;
+        return namePostFix;
     }
 
     public getOptions(): T {

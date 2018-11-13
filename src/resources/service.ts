@@ -26,11 +26,6 @@ export class Service extends Resource<IServiceOptions> {
         });
     }
 
-    public getTargetGroupNames(): string[] {
-        return this.options.protocols
-            .map((protocol: IServiceProtocolOptions): string => `${protocol.protocol}${this.getName(NamePostFix.TARGET_GROUP)}`);
-    }
-
     public generate(): any {
         const executionRole: any | undefined = this.cluster.getExecutionRoleArn() ? undefined : this.generateExecutionRole();
 
@@ -47,7 +42,9 @@ export class Service extends Resource<IServiceOptions> {
         return {
             [this.getName(NamePostFix.SERVICE)]: {
                 "Type": "AWS::ECS::Service",
-                "DependsOn": this.getName(NamePostFix.LOAD_BALANCER_LISTENER_RULE),
+                "DependsOn": this.protocols.map((protocol: Protocol): string => {
+                    return protocol.getName(NamePostFix.LOAD_BALANCER_LISTENER_RULE)
+                }),
                 "Properties": {
                     "ServiceName": this.options.name,
                     "Cluster": {
@@ -76,11 +73,11 @@ export class Service extends Resource<IServiceOptions> {
                     "TaskDefinition": {
                         "Ref": this.getName(NamePostFix.TASK_DEFINITION)
                     },
-                    "LoadBalancers": this.getTargetGroupNames().map((targetGroupName: string): any => ({
+                    "LoadBalancers": this.protocols.map((protocol: Protocol): any => ({
                         "ContainerName": this.options.name,
                         "ContainerPort": this.options.port,
                         "TargetGroupArn": {
-                            "Ref": targetGroupName
+                            "Ref": protocol.getName(NamePostFix.TARGET_GROUP)
                         }
                     }))
                 }

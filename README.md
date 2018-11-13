@@ -16,7 +16,7 @@ This plugin was created because almost all of my other services are running in l
 - Better TS Definitions
 
 #### Options
-```json
+```javascript
 {
     executionRoleArn?: string; // execution role for services, generated if not specified
     vpc: {

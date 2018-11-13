@@ -3,7 +3,7 @@
 Based on templates found here: https://github.com/nathanpeck/aws-cloudformation-fargate
 
 #### Why
-This plugin was created because almost all of my other services are running in lambdas. However, I started running other services using ECS Fargate and was using  a mixture of ecs-deploy, cloud formation templates, manual creation / updating, and custom deploy scripts. So I wrote this general plugin to replace those custom scripts / templates / cli tools.
+This plugin was created because almost all of my other services are running in lambdas; so I use serverless.yml files for pretty much everything else. However, I started running other services using ECS Fargate and was using  a mixture of ecs-deploy, cloud formation templates, manual creation / updating, and custom deploy scripts. So I wrote this general plugin to replace those custom scripts / templates / cli tools.
 
 #### Notes
 - This implements a Public VPC / Public Subnet / Public Load Balancer approach, I may in the future add the other approaches but for now this suites my personal needs.

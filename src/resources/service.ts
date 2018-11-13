@@ -33,6 +33,7 @@ export class Service extends Resource<IServiceOptions> {
             {},
             this.generateService(),
             this.generateTaskDefinition(),
+            this.generateTargetGroup(),
             ...this.protocols.map((protocol: Protocol): any => protocol.generate()),
             executionRole // could be undefined, so set it last
         );
@@ -73,13 +74,15 @@ export class Service extends Resource<IServiceOptions> {
                     "TaskDefinition": {
                         "Ref": this.getName(NamePostFix.TASK_DEFINITION)
                     },
-                    "LoadBalancers": this.protocols.map((protocol: Protocol): any => ({
-                        "ContainerName": this.options.name,
-                        "ContainerPort": this.options.port,
-                        "TargetGroupArn": {
-                            "Ref": protocol.getName(NamePostFix.TARGET_GROUP)
+                    "LoadBalancers": [
+                        {
+                            "ContainerName": this.getName(NamePostFix.CONTAINER_NAME),
+                            "ContainerPort": this.options.port,
+                            "TargetGroupArn": {
+                                "Ref": this.getName(NamePostFix.TARGET_GROUP)
+                            }
                         }
-                    }))
+                    ]
                 }
             },
         };
@@ -103,7 +106,7 @@ export class Service extends Resource<IServiceOptions> {
                     }),
                     "ContainerDefinitions": [
                         {
-                            "Name": this.options.name,
+                            "Name": this.getName(NamePostFix.CONTAINER_NAME),
                             "Cpu": this.options.cpu,
                             "Memory": this.options.memory,
                             "Image": `${this.options.imageRepository}:${this.options.name}-${this.options.imageTag}`,
@@ -115,6 +118,29 @@ export class Service extends Resource<IServiceOptions> {
                             ]
                         }
                     ]
+                }
+            }
+        };
+    }
+
+    private generateTargetGroup(): any {
+        return {
+            [this.getName(NamePostFix.TARGET_GROUP)]: {
+                "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+                "Properties": {
+                    "HealthCheckIntervalSeconds": 6,
+                    "HealthCheckPath": this.options.healthCheckUri ? this.options.healthCheckUri : "/",
+                    "HealthCheckProtocol": this.options.healthCheckProtocol ? this.options.healthCheckProtocol : "HTTP",
+                    "HealthCheckTimeoutSeconds": 5,
+                    "HealthyThresholdCount": 2,
+                    "TargetType": "ip",
+                    "Name": this.getName(NamePostFix.TARGET_GROUP),
+                    "Port": this.options.port,
+                    "Protocol": "HTTP",
+                    "UnhealthyThresholdCount": 2,
+                    "VpcId": {
+                        "Ref": this.cluster.getVPC().getName(NamePostFix.VPC)
+                    }
                 }
             }
         };

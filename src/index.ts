@@ -10,8 +10,6 @@ class ServerlessFargatePlugin {
 
     constructor(serverless: any, options: any) {
         this.serverless = serverless;
-        this.provider = 'aws';
-
         this.hooks = {
             'deploy:compileFunctions': this.compile.bind(this)
         }

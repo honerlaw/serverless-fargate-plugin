@@ -31,24 +31,6 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
         }
 
         var def: any = {
-            [this.getName(NamePostFix.TARGET_GROUP)]: {
-                "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
-                "Properties": {
-                    "HealthCheckIntervalSeconds": 6,
-                    "HealthCheckPath": this.options.healthCheckUri ? this.options.healthCheckUri : "/",
-                    "HealthCheckProtocol": this.options.healthCheckProtocol ? this.options.healthCheckProtocol : "HTTP",
-                    "HealthCheckTimeoutSeconds": 5,
-                    "HealthyThresholdCount": 2,
-                    "TargetType": "ip",
-                    "Name": this.service.getOptions().name,
-                    "Port": this.service.getOptions().port,
-                    "Protocol": this.options.protocol,
-                    "UnhealthyThresholdCount": 2,
-                    "VpcId": {
-                        "Ref": this.cluster.getVPC().getName(NamePostFix.VPC)
-                    }
-                }
-            },
             [this.getName(NamePostFix.LOAD_BALANCER_LISTENER)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::Listener",
                 "DependsOn": [
@@ -58,7 +40,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                     "DefaultActions": [
                         {
                             "TargetGroupArn": {
-                                "Ref": this.getName(NamePostFix.TARGET_GROUP)
+                                "Ref": this.service.getName(NamePostFix.TARGET_GROUP)
                             },
                             "Type": "forward"
                         }
@@ -75,7 +57,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                 "Properties": {
                     "Actions": [{
                         "TargetGroupArn": {
-                            "Ref": this.getName(NamePostFix.TARGET_GROUP)
+                            "Ref": this.service.getName(NamePostFix.TARGET_GROUP)
                         },
                         "Type": "forward"
                     }],

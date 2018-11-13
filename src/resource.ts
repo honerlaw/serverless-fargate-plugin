@@ -1,6 +1,7 @@
 export enum NamePostFix {
     CLUSTER = "Cluster",
     CONTAINER_SECURITY_GROUP = "ContainerSecurityGroup",
+    CONTAINER_NAME = "ContainerName",
     LOAD_BALANCER = "LoadBalancer",
     LOAD_BALANCER_SECURITY_GROUP = "LoadBalancerSecurityGroup",
     LOAD_BALANCER_LISTENER = "LoadBalancerListener",

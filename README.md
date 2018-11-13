@@ -9,6 +9,7 @@ This plugin was created because almost all of my other services are running in l
 - This implements a Public VPC / Public Subnet / Public Load Balancer approach, I may in the future add the other approaches but for now this suites my personal needs.
 - This plugin only supports AWS
 - Docker image must be built / uploaded / and properly tagged
+- It is assumed that the process running in the docker container is listening for HTTP requests.
 
 #### TODO
 - Test / Write Tests

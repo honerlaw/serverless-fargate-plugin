@@ -1,17 +1,18 @@
-import {IResourceGenerator, IVPCOptions} from "./definitions";
+import {IVPCOptions} from "../options";
+import {NamePostFix, Resource} from "../resource";
 
-export class VPC implements IResourceGenerator {
-    
-    private static readonly SUBNET_NAME_PREFIX: string = 'PublicSubnet';
+export class VPC extends Resource<IVPCOptions> {
 
-    private readonly options: IVPCOptions;
+    private readonly subnetNames: string[];
 
     public constructor(options: IVPCOptions) {
-        this.options = options;
+        super(options);
+        this.subnetNames = this.options.subnets
+            .map((subnet: string, index: number): string => `${this.getName(NamePostFix.SUBNET_NAME)}${index}`);
     }
 
     public getSubnetNames(): string[] {
-        return this.options.subnets.map((subnet: string, index: number): string => `${VPC.SUBNET_NAME_PREFIX}${index}`);
+        return this.subnetNames;
     }
 
     public generate(): any {
@@ -19,7 +20,7 @@ export class VPC implements IResourceGenerator {
         const subnets: string[] = this.options.subnets;
 
         return Object.assign({
-            "VPC": {
+            [this.getName(NamePostFix.VPC)]: {
                 "Type": "AWS::EC2::VPC",
                 "Properties": {
                     "EnableDnsSupport": true,
@@ -27,38 +28,38 @@ export class VPC implements IResourceGenerator {
                     "CidrBlock": vpc
                 }
             },
-            "InternetGateway": {
+            [this.getName(NamePostFix.INTERNET_GATEWAY)]: {
                 "Type": "AWS::EC2::InternetGateway"
             },
-            "GatewayAttachement": {
+            [this.getName(NamePostFix.GATEWAY_ATTACHMENT)]: {
                 "Type": "AWS::EC2::VPCGatewayAttachment",
                 "Properties": {
                     "VpcId": {
-                        "Ref": "VPC"
+                        "Ref": this.getName(NamePostFix.VPC)
                     },
                     "InternetGatewayId": {
-                        "Ref": "InternetGateway"
+                        "Ref": this.getName(NamePostFix.INTERNET_GATEWAY)
                     }
                 }
             },
-            "PublicRouteTable": {
+            [this.getName(NamePostFix.ROUTE_TABLE)]: {
                 "Type": "AWS::EC2::RouteTable",
                 "Properties": {
                     "VpcId": {
-                        "Ref": "VPC"
+                        "Ref": this.getName(NamePostFix.VPC)
                     }
                 }
             },
-            "PublicRoute": {
+            [this.getName(NamePostFix.ROUTE)]: {
                 "Type": "AWS::EC2::Route",
-                "DependsOn": "GatewayAttachement",
+                "DependsOn": this.getName(NamePostFix.GATEWAY_ATTACHMENT),
                 "Properties": {
                     "RouteTableId": {
-                        "Ref": "PublicRouteTable"
+                        "Ref": this.getName(NamePostFix.ROUTE_TABLE)
                     },
                     "DestinationCidrBlock": "0.0.0.0/0",
                     "GatewayId": {
-                        "Ref": "InternetGateway"
+                        "Ref": this.getName(NamePostFix.INTERNET_GATEWAY)
                     }
                 }
             },
@@ -85,20 +86,20 @@ export class VPC implements IResourceGenerator {
                         ]
                     },
                     "VpcId": {
-                        "Ref": "VPC"
+                        "Ref": this.getName(NamePostFix.VPC)
                     },
                     "CidrBlock": subnet,
                     "MapPublicIpOnLaunch": true
                 }
             };
-            def[`PublicSubnet${index}RouteTableAssociation`] = {
+            def[`${this.getName(NamePostFix.ROUTE_TABLE_ASSOCIATION)}${index}`] = {
                 "Type": "AWS::EC2::SubnetRouteTableAssociation",
                     "Properties": {
                     "SubnetId": {
                         "Ref": subnetName
                     },
                     "RouteTableId": {
-                        "Ref": "PublicRouteTable"
+                        "Ref": this.getName(NamePostFix.ROUTE_TABLE)
                     }
                 }
             };

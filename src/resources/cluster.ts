@@ -1,23 +1,15 @@
-import {IPluginOptions, IResourceGenerator, IServiceOptions} from "./definitions";
+import {IPluginOptions, IServiceOptions} from "../options";
 import {VPC} from "./vpc";
 import {Service} from "./service";
+import {NamePostFix, Resource} from "../resource";
 
-export class Cluster implements IResourceGenerator {
+export class Cluster extends Resource<IPluginOptions> {
 
     private readonly vpc: VPC;
-    private readonly options: IPluginOptions;
 
     public constructor(options: IPluginOptions, vpc: VPC) {
-        this.options = options;
+        super(options, 'ECS');
         this.vpc = vpc;
-    }
-
-    public getClusterName(): string {
-        return "ECSCluster";
-    }
-
-    public getImageRepository(): string | undefined {
-        return this.options.imageRepository;
     }
 
     public getExecutionRoleArn(): string | undefined {
@@ -36,50 +28,50 @@ export class Cluster implements IResourceGenerator {
         });
 
         return Object.assign({
-            "ECSCluster": {
+            [this.getName(NamePostFix.CLUSTER)]: {
                 "Type": "AWS::ECS::Cluster"
             },
-            "FargateContainerSecurityGroup": {
+            [this.getName(NamePostFix.CONTAINER_SECURITY_GROUP)]: {
                 "Type": "AWS::EC2::SecurityGroup",
                 "Properties": {
                     "GroupDescription": "Access to the Fargate containers",
                     "VpcId": {
-                        "Ref": "VPC"
+                        "Ref": this.getVPC().getName(NamePostFix.VPC)
                     }
                 }
             },
-            "EcsSecurityGroupIngressFromPublicALB": {
+            [this.getName(NamePostFix.SECURITY_GROUP_INGRESS_ALB)]: {
                 "Type": "AWS::EC2::SecurityGroupIngress",
                 "Properties": {
                     "Description": "Ingress from the public ALB",
                     "GroupId": {
-                        "Ref": "FargateContainerSecurityGroup"
+                        "Ref": this.getName(NamePostFix.CONTAINER_SECURITY_GROUP)
                     },
                     "IpProtocol": -1,
                     "SourceSecurityGroupId": {
-                        "Ref": "PublicLoadBalancerSG"
+                        "Ref": this.getName(NamePostFix.LOAD_BALANCER_SECURITY_GROUP)
                     }
                 }
             },
-            "EcsSecurityGroupIngressFromSelf": {
+            [this.getName(NamePostFix.SECURITY_GROUP_INGRESS_SELF)]: {
                 "Type": "AWS::EC2::SecurityGroupIngress",
                 "Properties": {
                     "Description": "Ingress from other containers in the same security group",
                     "GroupId": {
-                        "Ref": "FargateContainerSecurityGroup"
+                        "Ref": this.getName(NamePostFix.CONTAINER_SECURITY_GROUP)
                     },
                     "IpProtocol": -1,
                     "SourceSecurityGroupId": {
-                        "Ref": "FargateContainerSecurityGroup"
+                        "Ref": this.getName(NamePostFix.CONTAINER_SECURITY_GROUP)
                     }
                 }
             },
-            "PublicLoadBalancerSG": {
+            [this.getName(NamePostFix.LOAD_BALANCER_SECURITY_GROUP)]: {
                 "Type": "AWS::EC2::SecurityGroup",
                 "Properties": {
                     "GroupDescription": "Access to the public facing load balancer",
                     "VpcId": {
-                        "Ref": "VPC"
+                        "Ref": this.getVPC().getName(NamePostFix.VPC)
                     },
                     "SecurityGroupIngress": [
                         {
@@ -89,7 +81,7 @@ export class Cluster implements IResourceGenerator {
                     ]
                 }
             },
-            "PublicLoadBalancer": {
+            [this.getName(NamePostFix.LOAD_BALANCER)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
                 "Properties": {
                     "Scheme": "internet-facing",
@@ -104,57 +96,9 @@ export class Cluster implements IResourceGenerator {
                     })),
                     "SecurityGroups": [
                         {
-                            "Ref": "PublicLoadBalancerSG"
+                            "Ref": this.getName(NamePostFix.LOAD_BALANCER_SECURITY_GROUP)
                         }
                     ]
-                }
-            },
-            "DummyTargetGroupPublic": {
-                "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
-                "Properties": {
-                    "HealthCheckIntervalSeconds": 6,
-                    "HealthCheckPath": "/",
-                    "HealthCheckProtocol": "HTTP",
-                    "HealthCheckTimeoutSeconds": 5,
-                    "HealthyThresholdCount": 2,
-                    "Name": {
-                        "Fn::Join": [
-                            "-",
-                            [
-                                {
-                                    "Ref": "AWS::StackName"
-                                },
-                                "drop-1"
-                            ]
-                        ]
-                    },
-                    "Port": 80,
-                    "Protocol": "HTTP",
-                    "UnhealthyThresholdCount": 2,
-                    "VpcId": {
-                        "Ref": "VPC"
-                    }
-                }
-            },
-            "PublicLoadBalancerListener": {
-                "Type": "AWS::ElasticLoadBalancingV2::Listener",
-                "DependsOn": [
-                    "PublicLoadBalancer"
-                ],
-                "Properties": {
-                    "DefaultActions": [
-                        {
-                            "TargetGroupArn": {
-                                "Ref": "DummyTargetGroupPublic"
-                            },
-                            "Type": "forward"
-                        }
-                    ],
-                    "LoadBalancerArn": {
-                        "Ref": "PublicLoadBalancer"
-                    },
-                    "Port": 80,
-                    "Protocol": "HTTP"
                 }
             },
         }, ...defs);

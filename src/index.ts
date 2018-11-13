@@ -1,12 +1,6 @@
-/**
- *
- * So we can technically creeate a two step process here
- * Step 1, create a VPC, Load Balancer, and ECS Cluster (this is per environment, e.g. prod / qa / dev / stage /  etc)
- * Step 2, create the service (TaskDefinition, Service, TargetGroup, ListenerRule)
- */
-import {Cluster} from "./cluster";
-import {VPC} from "./vpc";
-import {IPluginOptions} from "./definitions";
+import {Cluster} from "./resources/cluster";
+import {VPC} from "./resources/vpc";
+import {IPluginOptions} from "./options";
 
 class ServerlessFargatePlugin {
 
@@ -24,7 +18,6 @@ class ServerlessFargatePlugin {
     }
 
     private compile(): void {
-
         const options: IPluginOptions = this.serverless.service.custom.fargate;
 
         // we could want more than one cluster in the future potentially per vpc

@@ -1,15 +1,15 @@
 {
   "name": "serverless-fargate-plugin",
   "version": "1.0.0",
-  "description": "",
+  "description": "A simple plugin to stand up an ECS FARGATE Cluster with a couple of services.",
   "main": "index.js",
   "scripts": {
     "clean": "rm -rf ./*.js ./*.js.map ./bin/ ./.serverless/",
     "build": "npm run clean && tsc -p ./tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Derek Honerlaw",
+  "license": "MIT",
   "devDependencies": {
     "typescript": "^3.1.6"
   }

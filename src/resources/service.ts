@@ -34,6 +34,7 @@ export class Service extends Resource<IServiceOptions> {
             this.generateService(),
             this.generateTaskDefinition(),
             this.generateTargetGroup(),
+            this.generateLogGroup(),
             ...this.protocols.map((protocol: Protocol): any => protocol.generate()),
             executionRole // could be undefined, so set it last
         );
@@ -204,6 +205,18 @@ export class Service extends Resource<IServiceOptions> {
                             }
                         }
                     ]
+                }
+            }
+        };
+    }
+
+    private generateLogGroup(): any {
+        return {
+            [this.getName(NamePostFix.LOG_GROUP)]: {
+                "Type": "AWS::Logs::LogGroup",
+                "Properties": {
+                    "LogGroupName": this.options.name,
+                    "RetentionInDays": 30
                 }
             }
         };

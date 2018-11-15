@@ -8,6 +8,7 @@ export enum NamePostFix {
     LOAD_BALANCER_LISTENER_RULE = "LoadBalancerListenerRule",
     SECURITY_GROUP_INGRESS_ALB = "SecurityGroupIngressAlb",
     SECURITY_GROUP_INGRESS_SELF = "SecurityGroupIngressSelf",
+    LOG_GROUP = "LogGroup",
 
     // VPC specific
     VPC = "VPC",

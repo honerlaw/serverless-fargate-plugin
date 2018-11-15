@@ -69,6 +69,7 @@ custom:
       cpu: 512
       memory: 1024
       port: 80
+      healthCheckUri: /health
       imageTag: 1.0.0
       imageRepository: xxx.amazonaws.com/xxx
       entryPoint:
@@ -77,7 +78,6 @@ custom:
       - start
       protocols:
       - protocol: HTTP
-        healthCheckUri: /health
       - protocol: HTTPS
         certificateArns:
         - xxxx

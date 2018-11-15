@@ -115,7 +115,17 @@ export class Service extends Resource<IServiceOptions> {
                                 {
                                     "ContainerPort": this.options.port
                                 }
-                            ]
+                            ],
+                            "LogConfiguration": {
+                                "LogDriver": "awslogs",
+                                "Options": {
+                                    "awslogs-group": this.options.name,
+                                    "awslogs-region": {
+                                        "Ref": "AWS::Region"
+                                    },
+                                    "awslogs-stream-prefix": "serverless-fargate"
+                                }
+                            }
                         }
                     ]
                 }

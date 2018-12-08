@@ -16,11 +16,13 @@ class ServerlessFargatePlugin {
     }
 
     private compile(): void {
-        const options: IPluginOptions = this.serverless.service.custom.fargate;
+        const service: any = this.serverless.service;
+        const options: IPluginOptions = service.custom.fargate;
+        const stage: string = service.provider ? service.provider.stage : service.stage;
 
         // we could want more than one cluster in the future potentially per vpc
-        const vpc: VPC = new VPC(options.vpc);
-        const cluster: Cluster = new Cluster(options, vpc);
+        const vpc: VPC = new VPC(stage, options.vpc);
+        const cluster: Cluster = new Cluster(stage, options, vpc);
 
         // merge all our stuff into resources
         Object.assign(

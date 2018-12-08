@@ -7,8 +7,8 @@ export class Cluster extends Resource<IPluginOptions> {
 
     private readonly vpc: VPC;
 
-    public constructor(options: IPluginOptions, vpc: VPC) {
-        super(options, 'ECS');
+    public constructor(stage: string, options: IPluginOptions, vpc: VPC) {
+        super(options, stage, 'ECS');
         this.vpc = vpc;
     }
 
@@ -23,8 +23,8 @@ export class Cluster extends Resource<IPluginOptions> {
     public generate(): any {
 
         // generate the defs for each service
-        const defs: any[] = this.options.services.map((service: IServiceOptions): any => {
-            return new Service(this, service).generate();
+        const defs: any[] = this.options.services.map((serviceOptions: IServiceOptions): any => {
+            return new Service(this.stage, serviceOptions, this).generate();
         });
 
         return Object.assign({

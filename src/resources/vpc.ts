@@ -5,8 +5,8 @@ export class VPC extends Resource<IVPCOptions> {
 
     private readonly subnetNames: string[];
 
-    public constructor(options: IVPCOptions) {
-        super(options);
+    public constructor(stage: string, options: IVPCOptions) {
+        super(options, stage);
         this.subnetNames = this.options.subnets
             .map((subnet: string, index: number): string => `${this.getName(NamePostFix.SUBNET_NAME)}${index}`);
     }

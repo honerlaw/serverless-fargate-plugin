@@ -10,9 +10,9 @@ export class Service extends Resource<IServiceOptions> {
     private readonly cluster: Cluster;
     private readonly protocols: Protocol[];
 
-    public constructor(cluster: Cluster, options: IServiceOptions) {
+    public constructor(stage: string, options: IServiceOptions, cluster: Cluster) {
         // camelcase a default name
-        super(options, options.name
+        super(options, stage, options.name
             .toLowerCase() // lowercase everything
             .replace(/[^A-Za-z0-9]/g, ' ') // replace non alphanumeric with soaces
             .split(' ') // split on those spaces
@@ -21,8 +21,8 @@ export class Service extends Resource<IServiceOptions> {
             .join('')); // join back to a single strimg
         this.cluster = cluster;
 
-        this.protocols = this.options.protocols.map((protocol: IServiceProtocolOptions): any => {
-            return new Protocol(cluster, this, protocol);
+        this.protocols = this.options.protocols.map((serviceProtocolOptions: IServiceProtocolOptions): any => {
+            return new Protocol(cluster, this, stage, serviceProtocolOptions);
         });
     }
 
@@ -120,11 +120,11 @@ export class Service extends Resource<IServiceOptions> {
                             "LogConfiguration": {
                                 "LogDriver": "awslogs",
                                 "Options": {
-                                    "awslogs-group": this.options.name,
+                                    "awslogs-group": `serverless-fargate-${this.stage}`,
                                     "awslogs-region": {
                                         "Ref": "AWS::Region"
                                     },
-                                    "awslogs-stream-prefix": "serverless-fargate"
+                                    "awslogs-stream-prefix": this.options.name
                                 }
                             }
                         }
@@ -215,7 +215,7 @@ export class Service extends Resource<IServiceOptions> {
             [this.getName(NamePostFix.LOG_GROUP)]: {
                 "Type": "AWS::Logs::LogGroup",
                 "Properties": {
-                    "LogGroupName": this.options.name,
+                    "LogGroupName": `serverless-fargate-${this.stage}`,
                     "RetentionInDays": 30
                 }
             }

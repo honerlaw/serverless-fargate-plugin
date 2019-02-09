@@ -45,7 +45,7 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
         taskRoleArn?: string;
         healthCheckUri?: string; // defaults to "/"
         healthCheckProtocol?: string; // defaults to "HTTP"
-        healthCheckInterval?: string // in seconds, defaults to 6 seconds
+        healthCheckInterval?: number // in seconds, defaults to 6 seconds
     }>
 }
 ```

@@ -2,8 +2,10 @@
 
 Based on templates found here: https://github.com/nathanpeck/aws-cloudformation-fargate
 
-#### Why
-This plugin was created because almost all of my other services are running in lambdas; so I use serverless.yml files for pretty much everything else. However, I started running other services using ECS Fargate and was using  a mixture of ecs-deploy, cloud formation templates, manual creation / updating, and custom deploy scripts. So I wrote this general plugin to replace those custom scripts / templates / cli tools.
+#### About
+This plugin will create a cluster, load balancer, vpc, subnets, and one or more services to associate with it. This plugin implements the Public VPC / Public Load Balancer / Public Subnet approach found in the templates above.
+
+If you would like to reference the VPC elsewhere (such as in the [serverless-aurora-plugin](https://github.com/honerlaw/serverless-aurora-plugin)). The VPC will be called `VPC{stage}` where `{stage}` is the stage in the serverless.yml. The subnets will be called `SubnetName{stage}{index}` where `{stage}`is the stage in the serverless.yml, and `{index}` references the index of the subnet that was specified in the subnets array. *THESE ARE NOT ADDED TO OUTPUT*. So you can only reference them in the same serverless.yml / same cf stack.
 
 #### Notes
 - This implements a Public VPC / Public Subnet / Public Load Balancer approach, I may in the future add the other approaches but for now this suites my personal needs.
@@ -12,8 +14,10 @@ This plugin was created because almost all of my other services are running in l
 - It is assumed that the process running in the docker container is listening for HTTP requests.
 
 #### TODO
-- Test / Write Tests
+- Tests
 - Better TS Definitions
+- Outputs for certain resources
+- More options
 
 #### Options
 ```javascript
@@ -41,6 +45,7 @@ This plugin was created because almost all of my other services are running in l
         taskRoleArn?: string;
         healthCheckUri?: string; // defaults to "/"
         healthCheckProtocol?: string; // defaults to "HTTP"
+        healthCheckInterval?: string // in seconds, defaults to 6 seconds
     }>
 }
 ```
@@ -70,6 +75,7 @@ custom:
       memory: 1024
       port: 80
       healthCheckUri: /health
+      healthCheckInterval: 6
       imageTag: 1.0.0
       imageRepository: xxx.amazonaws.com/xxx
       entryPoint:

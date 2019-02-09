@@ -139,7 +139,7 @@ export class Service extends Resource<IServiceOptions> {
             [this.getName(NamePostFix.TARGET_GROUP)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
                 "Properties": {
-                    "HealthCheckIntervalSeconds": 6,
+                    "HealthCheckIntervalSeconds": this.options.healthCheckInterval ? this.options.healthCheckInterval : 6,
                     "HealthCheckPath": this.options.healthCheckUri ? this.options.healthCheckUri : "/",
                     "HealthCheckProtocol": this.options.healthCheckProtocol ? this.options.healthCheckProtocol : "HTTP",
                     "HealthCheckTimeoutSeconds": 5,

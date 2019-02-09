@@ -23,6 +23,7 @@ export interface IServiceOptions {
     taskRoleArn?: string;
     healthCheckUri?: string; // defaults to "/"
     healthCheckProtocol?: string; // defaults to "HTTP"
+    healthCheckInterval?: string // in seconds, defaults to 6 seconds
 }
 
 export interface IPluginOptions {

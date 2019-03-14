@@ -15,7 +15,8 @@ export interface IServiceOptions {
     port: number;
     entryPoint: string[];
     protocols: IServiceProtocolOptions[];
-    imageRepository: string;
+    image?: string;
+    imageRepository?: string;
     imageTag?: string;
     priority?: number; // priority for routing, defaults to 1
     path?: string; // path the LB should send traffic to, defaults '*' (everything)

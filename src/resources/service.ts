@@ -110,7 +110,7 @@ export class Service extends Resource<IServiceOptions> {
                             "Name": this.getName(NamePostFix.CONTAINER_NAME),
                             "Cpu": this.options.cpu,
                             "Memory": this.options.memory,
-                            "Image": `${this.options.imageRepository}:${this.options.name}-${this.options.imageTag}`,
+                            "Image": this.options.image || `${this.options.imageRepository}:${this.options.name}-${this.options.imageTag}`,
                             "EntryPoint": this.options.entryPoint,
                             "PortMappings": [
                                 {

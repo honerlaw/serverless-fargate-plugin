@@ -106,7 +106,7 @@ export class Service extends Resource<IServiceOptions> {
                         "Ref": "AWS::NoValue"
                     }),
                     "ContainerDefinitions": [
-                        {
+                        Object.assign({
                             "Name": this.getName(NamePostFix.CONTAINER_NAME),
                             "Cpu": this.options.cpu,
                             "Memory": this.options.memory,
@@ -127,7 +127,13 @@ export class Service extends Resource<IServiceOptions> {
                                     "awslogs-stream-prefix": this.options.name
                                 }
                             }
-                        }
+                        },
+                        this.options.environment && {
+                            "Environment": Object.keys(this.options.environment).map(name => ({
+                                "Name": name,
+                                "Value": String(this.options.environment[name]),
+                            }))
+                        })
                     ]
                 }
             }

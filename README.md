@@ -37,8 +37,9 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
             protocol: "HTTP" | "HTTPS";
             certificateArns?: string[]; // needed for https
         }>;
-        imageRepository: string;
-        imageTag?: string; //
+        image?: string; // full image name, REPOSITORY[:TAG]
+        imageRepository?: string; // image repository (used if image option is not provided)
+        imageTag?: string; // image tag (used if image option is not provided)
         priority?: number; // priority for routing, defaults to 1
         path?: string; // path the Load Balancer should send traffic to, defaults to '*'
         desiredCount?: number; // defaults to 1

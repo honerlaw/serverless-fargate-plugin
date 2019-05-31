@@ -33,6 +33,7 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
         memory: number;
         port: number; // docker port (the port exposed on the docker image)
         entryPoint: string[]; // same as docker's entry point
+        environment: { [key: string]: string }; // environment variables passed to docker container
         protocols: Array<{
             protocol: "HTTP" | "HTTPS";
             certificateArns?: string[]; // needed for https
@@ -83,6 +84,8 @@ custom:
       - npm
       - run
       - start
+      environment:
+        PRODUCTION: true
       protocols:
       - protocol: HTTP
       - protocol: HTTPS

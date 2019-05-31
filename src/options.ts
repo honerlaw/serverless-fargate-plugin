@@ -14,6 +14,7 @@ export interface IServiceOptions {
     memory: number;
     port: number;
     entryPoint: string[];
+    environment: { [key: string]: string };
     protocols: IServiceProtocolOptions[];
     image?: string;
     imageRepository?: string;

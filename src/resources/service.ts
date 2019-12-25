@@ -94,7 +94,7 @@ export class Service extends Resource<IServiceOptions> {
             [this.getName(NamePostFix.TASK_DEFINITION)]: {
                 "Type": "AWS::ECS::TaskDefinition",
                 "Properties": {
-                    "Family": this.options.name,
+                    "Family": `${this.options.name}-${this.stage}`,
                     "Cpu": this.options.cpu,
                     "Memory": this.options.memory,
                     "NetworkMode": "awsvpc",

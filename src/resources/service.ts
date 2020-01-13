@@ -120,7 +120,7 @@ export class Service extends Resource<IServiceOptions> {
                             "LogConfiguration": {
                                 "LogDriver": "awslogs",
                                 "Options": {
-                                    "awslogs-group": `serverless-fargate-${this.stage}`,
+                                    "awslogs-group": `serverless-fargate-${this.options.name}-${this.stage}`,
                                     "awslogs-region": {
                                         "Ref": "AWS::Region"
                                     },
@@ -221,7 +221,7 @@ export class Service extends Resource<IServiceOptions> {
             [this.getName(NamePostFix.LOG_GROUP)]: {
                 "Type": "AWS::Logs::LogGroup",
                 "Properties": {
-                    "LogGroupName": `serverless-fargate-${this.stage}`,
+                    "LogGroupName": `serverless-fargate-${this.options.name}-${this.stage}`,
                     "RetentionInDays": 30
                 }
             }

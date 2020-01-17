@@ -2,11 +2,12 @@ import {IServiceOptions, IServiceProtocolOptions} from "../options";
 import {Cluster} from "./cluster";
 import {NamePostFix, Resource} from "../resource";
 import {Protocol} from "./protocol";
+import * as uuid from 'uuid/v1';
 
 export class Service extends Resource<IServiceOptions> {
 
     private static readonly EXECUTION_ROLE_NAME: string = "ECSServiceExecutionRole";
-
+    private readonly logGroupName: string;
     private readonly cluster: Cluster;
     private readonly protocols: Protocol[];
 
@@ -24,6 +25,8 @@ export class Service extends Resource<IServiceOptions> {
         this.protocols = this.options.protocols.map((serviceProtocolOptions: IServiceProtocolOptions): any => {
             return new Protocol(cluster, this, stage, serviceProtocolOptions);
         });
+
+        this.logGroupName = `serverless-fargate-${options.name}-${stage}-${uuid()}`;
     }
 
     public generate(): any {
@@ -120,7 +123,7 @@ export class Service extends Resource<IServiceOptions> {
                             "LogConfiguration": {
                                 "LogDriver": "awslogs",
                                 "Options": {
-                                    "awslogs-group": `serverless-fargate-${this.options.name}-${this.stage}`,
+                                    "awslogs-group": this.logGroupName,
                                     "awslogs-region": {
                                         "Ref": "AWS::Region"
                                     },
@@ -221,7 +224,7 @@ export class Service extends Resource<IServiceOptions> {
             [this.getName(NamePostFix.LOG_GROUP)]: {
                 "Type": "AWS::Logs::LogGroup",
                 "Properties": {
-                    "LogGroupName": `serverless-fargate-${this.options.name}-${this.stage}`,
+                    "LogGroupName": this.logGroupName,
                     "RetentionInDays": 30
                 }
             }

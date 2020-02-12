@@ -18,7 +18,8 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
 - Better TS Definitions
 - Outputs for certain resources
 - Autoscaling
-- Multi-vpc aproach
+- Option to not use ELB
+- Add custom tagging
 - Auto certification trhough plugin https://github.com/schwamster/serverless-certificate-creator
 - More options
 

@@ -35,7 +35,7 @@ export class Cluster extends Resource<IPluginOptions> {
             [this.getName(NamePostFix.CLUSTER)]: {
                 "Type": "AWS::ECS::Cluster"
             },
-            ...this.getSecurityGroups(),
+            ...this.getClusterSecurityGroups(),
             [this.getName(NamePostFix.LOAD_BALANCER)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
                 "Properties": {
@@ -53,39 +53,43 @@ export class Cluster extends Resource<IPluginOptions> {
         }, ...defs);
     }
 
-    private getELBSecurityGroups() {
+    private getELBSecurityGroups(): any {;
         if (this.getVPC().useExistingVPC()) {
-            return this.getVPC().getSecurityGroups();
-        } return [{ "Ref": this.getName(NamePostFix.LOAD_BALANCER_SECURITY_GROUP) }];
+            return this.getVPC().getSecurityGroups()
+        } return this.services.map((service: Service) => ({ "Ref": this.getSecurityGroupNameByService(service) }));
     }
 
-    private getSecurityGroups(): any {
-        let baseSecurityGroups = [];
-        if (this.getVPC().useExistingVPC()) baseSecurityGroups = this.getVPC().getSecurityGroups();
-        return {
-            ...baseSecurityGroups,
-            [this.getName(NamePostFix.CONTAINER_SECURITY_GROUP)]: {
-                "Type": "AWS::EC2::SecurityGroup",
-                "Properties": {
-                    "GroupDescription": "Access to the Fargate containers",
-                    "VpcId": this.getVPC().getRefName()
-                }
-            },
-            [this.getName(NamePostFix.SECURITY_GROUP_INGRESS_SELF)]: {
-                "Type": "AWS::EC2::SecurityGroupIngress",
-                "Properties": {
-                    "Description": "Ingress from other containers in the same security group",
-                    "GroupId": {
-                        "Ref": this.getName(NamePostFix.CONTAINER_SECURITY_GROUP)
-                    },
-                    "IpProtocol": -1,
-                    "SourceSecurityGroupId": {
-                        "Ref": this.getName(NamePostFix.CONTAINER_SECURITY_GROUP)
+    private getClusterSecurityGroups(): any {
+        if (this.getVPC().useExistingVPC()) { return {}; } //No security group resource is required
+        else {
+            return {
+                [this.getName(NamePostFix.CONTAINER_SECURITY_GROUP)]: {
+                    "Type": "AWS::EC2::SecurityGroup",
+                    "Properties": {
+                        "GroupDescription": "Access to the Fargate containers",
+                        "VpcId": this.getVPC().getRefName()
                     }
-                }
-            },
-            ...this.generateServicesSecurityGroups()
-        };
+                },
+                [this.getName(NamePostFix.SECURITY_GROUP_INGRESS_SELF)]: {
+                    "Type": "AWS::EC2::SecurityGroupIngress",
+                    "Properties": {
+                        "Description": "Ingress from other containers in the same security group",
+                        "GroupId": {
+                            "Ref": this.getName(NamePostFix.CONTAINER_SECURITY_GROUP)
+                        },
+                        "IpProtocol": -1,
+                        "SourceSecurityGroupId": {
+                            "Ref": this.getName(NamePostFix.CONTAINER_SECURITY_GROUP)
+                        }
+                    }
+                },
+                ...this.generateServicesSecurityGroups()
+            };
+        }
+    }
+
+    getSecurityGroupNameByService(service: Service): string {
+        return `${this.getName(NamePostFix.LOAD_BALANCER_SECURITY_GROUP)}_${service.getName(NamePostFix.SERVICE)}`;
     }
     
     private generateServicesSecurityGroups(): object {
@@ -101,22 +105,9 @@ export class Cluster extends Resource<IPluginOptions> {
     }
 
     private generateSecurityGroupsByService(service: Service): any {
-        const ELBServiceSecGroup = `${this.getName(NamePostFix.LOAD_BALANCER_SECURITY_GROUP)}_${service.getName(NamePostFix.SERVICE)}`;
+        const ELBServiceSecGroup = this.getSecurityGroupNameByService(service);
         return {
-            [this.getName(NamePostFix.SECURITY_GROUP_INGRESS_ALB)]: {
-                "Type": "AWS::EC2::SecurityGroupIngress",
-                "Properties": {
-                    "Description": `Ingress from the ALB - task ${service.getName(NamePostFix.SERVICE)}`,
-                    "GroupId": {
-                        "Ref": this.getName(NamePostFix.CONTAINER_SECURITY_GROUP)
-                    },
-                    "IpProtocol": -1,
-                    "SourceSecurityGroupId": {
-                        "Ref": ELBServiceSecGroup
-                    }
-                }
-            },
-            //Public security group
+            //Public security groups
             ...(this.options.public ? {
                 [ELBServiceSecGroup]: {
                     "Type": "AWS::EC2::SecurityGroup",
@@ -131,8 +122,23 @@ export class Cluster extends Resource<IPluginOptions> {
                             }
                         ]
                     }
+                },
+                [this.getName(NamePostFix.SECURITY_GROUP_INGRESS_ALB)]: {
+                    "Type": "AWS::EC2::SecurityGroupIngress",
+                    "Properties": {
+                        "Description": `Ingress from the ALB - task ${service.getName(NamePostFix.SERVICE)}`,
+                        "GroupId": {
+                            "Ref": this.getName(NamePostFix.CONTAINER_SECURITY_GROUP)
+                        },
+                        "IpProtocol": -1,
+                        "SourceSecurityGroupId": {
+                            "Ref": ELBServiceSecGroup
+                        }
+                    }
                 }
-            } : {})
+            } : {
+                /*TODO: if not public AND also not specifiying a VPC, different secgroup must be created*/
+            })
         }
     }
 }

@@ -34,6 +34,7 @@ export interface IServiceOptions {
 }
 
 export interface IPluginOptions {
+    public: boolean;
     executionRoleArn?: string; // role for services, generated if not specfied
     vpc: IVPCOptions;
     services: IServiceOptions[];

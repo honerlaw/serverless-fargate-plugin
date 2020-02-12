@@ -41,7 +41,8 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
         name: string; // name of the service
         cpu: number;
         memory: number;
-        port: number; // docker port (the port exposed on the docker image)
+        public: boolean; //Will it be facing internet? This affects directly what security groups will be auto created
+        port: number; // docker port (the port exposed on the docker image) - if not specified random port will be used - usefull for busy private subnets 
         entryPoint: string[]; // same as docker's entry point
         environment: { [key: string]: string }; // environment variables passed to docker container
         protocols: Array<{
@@ -53,7 +54,7 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
         imageTag?: string; // image tag (used if image option is not provided)
         priority?: number; // priority for routing, defaults to 1
         path?: string; // path the Load Balancer should send traffic to, defaults to '*'
-        desiredCount?: number; // defaults to 1
+        desiredCount?: number; // number of tasks wanted by default - if not specified defaults to 1
         taskRoleArn?: string;
         healthCheckUri?: string; // defaults to "/"
         healthCheckProtocol?: string; // defaults to "HTTP"

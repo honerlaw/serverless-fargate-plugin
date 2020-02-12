@@ -1,6 +1,11 @@
 export interface IVPCOptions {
     cidr: string;
     subnets: string[];
+    //Optional ivars to dictate if will use existing VPC 
+    //and subnets specified
+    vpcId: string;
+    securityGroupIds: string[];
+    subnetIds: string[];
 }
 
 export interface IServiceProtocolOptions {

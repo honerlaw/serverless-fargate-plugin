@@ -35,9 +35,7 @@ export class Cluster extends Resource<IPluginOptions> {
                 "Type": "AWS::EC2::SecurityGroup",
                 "Properties": {
                     "GroupDescription": "Access to the Fargate containers",
-                    "VpcId": {
-                        "Ref": this.getVPC().getName(NamePostFix.VPC)
-                    }
+                    "VpcId": this.getVPC().getRefName()
                 }
             },
             [this.getName(NamePostFix.SECURITY_GROUP_INGRESS_ALB)]: {
@@ -70,9 +68,7 @@ export class Cluster extends Resource<IPluginOptions> {
                 "Type": "AWS::EC2::SecurityGroup",
                 "Properties": {
                     "GroupDescription": "Access to the public facing load balancer",
-                    "VpcId": {
-                        "Ref": this.getVPC().getName(NamePostFix.VPC)
-                    },
+                    "VpcId": this.getVPC().getRefName(),
                     "SecurityGroupIngress": [
                         {
                             "CidrIp": "0.0.0.0/0",
@@ -91,9 +87,7 @@ export class Cluster extends Resource<IPluginOptions> {
                             "Value": "30"
                         }
                     ],
-                    "Subnets": this.vpc.getSubnetNames().map((subnetName: string) => ({
-                        "Ref": subnetName
-                    })),
+                    "Subnets": this.getVPC().getSubnets(),
                     "SecurityGroups": [
                         {
                             "Ref": this.getName(NamePostFix.LOAD_BALANCER_SECURITY_GROUP)

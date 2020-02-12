@@ -69,10 +69,7 @@ export class Service extends Resource<IServiceOptions> {
                                     "Ref": this.cluster.getName(NamePostFix.CONTAINER_SECURITY_GROUP)
                                 }
                             ],
-                            "Subnets": this.cluster.getVPC().getSubnetNames().map((subnetName: string): any => ({
-                                "Ref": subnetName
-                            }))
-
+                            "Subnets": this.cluster.getVPC().getSubnets()
                         }
                     },
                     "TaskDefinition": {
@@ -158,9 +155,7 @@ export class Service extends Resource<IServiceOptions> {
                     "Port": this.options.port,
                     "Protocol": "HTTP",
                     "UnhealthyThresholdCount": 2,
-                    "VpcId": {
-                        "Ref": this.cluster.getVPC().getName(NamePostFix.VPC)
-                    }
+                    "VpcId": this.cluster.getVPC().getRefName()
                 }
             }
         };

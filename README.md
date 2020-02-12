@@ -17,6 +17,9 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
 - Tests
 - Better TS Definitions
 - Outputs for certain resources
+- Autoscaling
+- Multi-vpc aproach
+- Auto certification trhough plugin https://github.com/schwamster/serverless-certificate-creator
 - More options
 
 #### Options
@@ -24,8 +27,15 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
 {
     executionRoleArn?: string; // execution role for services, generated if not specified
     vpc: {
+        //if this options are specified it will create a VPC
         cidr: string;
         subnets: string[]; // subnet cidrs
+        //If this options are specified it will attach to existing VPC.
+        //all of then are required, if one missing it will turn to self-created 
+        //VPC as described above
+        vpcId: string;
+        securityGroupIds: string[]
+        subnetIds: string[]
     };
     services: Array<{
         name: string; // name of the service

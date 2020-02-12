@@ -46,7 +46,7 @@ export class Cluster extends Resource<IClusterOptions> {
             [this.getName(NamePostFix.LOAD_BALANCER)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
                 "Properties": {
-                    "Scheme": (this.options.public ? "internet-facing" : "internal"),
+                    "Scheme": (this.isPublic() ? "internet-facing" : "internal"),
                     "LoadBalancerAttributes": [
                         {
                             "Key": "idle_timeout.timeout_seconds",

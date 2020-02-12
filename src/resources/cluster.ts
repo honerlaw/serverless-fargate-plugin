@@ -1,14 +1,14 @@
-import {IPluginOptions, IServiceOptions} from "../options";
+import { IClusterOptions, IServiceOptions} from "../options";
 import {VPC} from "./vpc";
 import {Service} from "./service";
 import {NamePostFix, Resource} from "../resource";
 
-export class Cluster extends Resource<IPluginOptions> {
+export class Cluster extends Resource<IClusterOptions> {
 
     private readonly vpc: VPC;
     private readonly services: Service[];
 
-    public constructor(stage: string, options: IPluginOptions, vpc: VPC) {
+    public constructor(stage: string, options: IClusterOptions, vpc: VPC) {
         super(options, stage, 'ECS');
         this.vpc = vpc;
         this.services = this.options.services.map((serviceOptions: IServiceOptions): any => {
@@ -26,6 +26,11 @@ export class Cluster extends Resource<IPluginOptions> {
 
     public isPublic(): boolean {
         return this.options.public;
+    }
+
+    public getName(namePostFix: NamePostFix): string {
+        namePostFix = <NamePostFix>(namePostFix.toString() + this.options.clusterName);
+        return super.getName(namePostFix);
     }
 
     public generate(): any {

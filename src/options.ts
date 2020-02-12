@@ -33,8 +33,9 @@ export interface IServiceOptions {
     healthCheckInterval?: number // in seconds, defaults to 6 seconds
 }
 
-export interface IPluginOptions {
+export interface IClusterOptions {
     public: boolean;
+    clusterName: string;
     executionRoleArn?: string; // role for services, generated if not specfied
     vpc: IVPCOptions;
     services: IServiceOptions[];

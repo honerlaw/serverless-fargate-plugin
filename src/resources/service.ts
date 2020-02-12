@@ -30,7 +30,7 @@ export class Service extends Resource<IServiceOptions> {
         this.logGroupName = `serverless-fargate-${options.name}-${stage}-${uuid()}`;
 
         this.port = (this.options.port || (Math.floor(Math.random() * 49151) + 1024))
-        console.debug(`Using port ${this.port} for service ${options.name}`);
+        console.debug(`Serverless: fargate-plugin: Using port ${this.port} for service ${options.name} on cluster ${cluster.getName(NamePostFix.CLUSTER)}`);
     }
 
     public generate(): any {

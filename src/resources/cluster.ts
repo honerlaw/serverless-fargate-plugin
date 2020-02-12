@@ -24,12 +24,14 @@ export class Cluster extends Resource<IPluginOptions> {
         return this.vpc;
     }
 
+    public isPublic(): boolean {
+        return this.options.public;
+    }
+
     public generate(): any {
 
         // generate the defs for each service
-        const defs: any[] = this.services.map((service: Service): any => {
-            service.generate();
-        });
+        const defs: any[] = this.services.map((service: Service): any => service.generate());
 
         return Object.assign({
             [this.getName(NamePostFix.CLUSTER)]: {
@@ -39,7 +41,7 @@ export class Cluster extends Resource<IPluginOptions> {
             [this.getName(NamePostFix.LOAD_BALANCER)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
                 "Properties": {
-                    "Scheme": "internet-facing",
+                    "Scheme": (this.options.public ? "internet-facing" : "internal"),
                     "LoadBalancerAttributes": [
                         {
                             "Key": "idle_timeout.timeout_seconds",

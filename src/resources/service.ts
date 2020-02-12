@@ -67,7 +67,7 @@ export class Service extends Resource<IServiceOptions> {
                     "DesiredCount": this.options.desiredCount ? this.options.desiredCount : 1,
                     "NetworkConfiguration": {
                         "AwsvpcConfiguration": {
-                            "AssignPublicIp": "ENABLED",
+                            "AssignPublicIp": (this.cluster.isPublic() ? "ENABLED" : "DISABLED"),
                             "SecurityGroups": this.getSecurityGroups(),
                             "Subnets": this.cluster.getVPC().getSubnets()
                         }
@@ -111,7 +111,7 @@ export class Service extends Resource<IServiceOptions> {
                             "Cpu": this.options.cpu,
                             "Memory": this.options.memory,
                             "Image": this.options.image || `${this.options.imageRepository}:${this.options.name}-${this.options.imageTag}`,
-                            "EntryPoint": this.options.entryPoint,
+                            ...(this.options.entryPoint ? { "EntryPoint": this.options.entryPoint } : {}),
                             "PortMappings": [
                                 {
                                     "ContainerPort": this.port

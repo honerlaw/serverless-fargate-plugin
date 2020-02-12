@@ -41,7 +41,7 @@ export abstract class Resource<T> {
 
     public getName(namePostFix: NamePostFix): string {
         if (this.namePrefix) {
-            return this.namePrefix + namePostFix.toString() + this.stage;
+            return this.namePrefix + namePostFix.toString();
         }
         return namePostFix + this.stage;
     }

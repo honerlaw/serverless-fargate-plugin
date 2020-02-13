@@ -95,7 +95,7 @@ export class Cluster extends Resource<IClusterOptions> {
         }
     }
 
-    getSecurityGroupNameByService(service: Service): string {
+    private getSecurityGroupNameByService(service: Service): string {
         return `${this.getName(NamePostFix.LOAD_BALANCER_SECURITY_GROUP)}_${service.getName(NamePostFix.SERVICE)}`;
     }
     

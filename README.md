@@ -17,13 +17,16 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
 - Tests
 - Better TS Definitions
 - Option to not use ELB
-- Add custom tagging
 - Auto certification trhough plugin https://github.com/schwamster/serverless-certificate-creator
 - More options
 
 #### Options
 ```javascript
 {
+    tags: {
+      owner: Me
+      Customer: You
+    };
     executionRoleArn?: string; // execution role for services, generated if not specified
     vpc: {
         //if this options are specified it will create a VPC
@@ -31,7 +34,8 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
         subnets: string[]; // subnet cidrs
         //If this options are specified it will attach to existing VPC.
         //all of then are required, if one missing it will turn to self-created 
-        //VPC as described above
+        //VPC as described above -- All vpc parameters below are intrinsic safe 
+        //ivars meaning that all of then accept intrinsic functions 💪
         vpcId: string;
         securityGroupIds: string[]
         subnetIds: string[]
@@ -91,6 +95,9 @@ custom:
       subnets:
       - 10.0.0.0/24
       - 10.0.1.0/24
+    tags:
+      customer: You
+      owner: Me
     services:
     - name: example-service-name
       cpu: 512

@@ -66,5 +66,6 @@ export interface IClusterOptions {
     clusterName: string;
     executionRoleArn?: string; // role for services, generated if not specfied
     vpc: IVPCOptions;
+    tags?: object;
     services: IServiceOptions[];
 }

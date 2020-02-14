@@ -16,8 +16,9 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
     public constructor(cluster: Cluster,
                        service: Service,
                        stage: string,
-                       options: IServiceProtocolOptions) {
-        super(options, stage, service.getNamePrefix());
+                       options: IServiceProtocolOptions, 
+                       tags?: object) {
+        super(options, stage, service.getNamePrefix(), tags);
         this.cluster = cluster;
         this.service = service;
     }

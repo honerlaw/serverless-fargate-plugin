@@ -5,8 +5,8 @@ export class VPC extends Resource<IVPCOptions> {
 
     private readonly subnets: string[];
 
-    public constructor(stage: string, options: IVPCOptions) {
-        super(options, stage);
+    public constructor(stage: string, options: IVPCOptions, tags?: object) {
+        super(options, stage, null, tags);
         //subnetIds don't enforce mapping due allowance of instrinsict functions object
         this.subnets = (this.useExistingVPC() ? this.options.subnetIds : this.options.subnets
             .map((subnet: string, index: number): string => `${this.getName(NamePostFix.SUBNET_NAME)}${index}`));
@@ -53,6 +53,7 @@ export class VPC extends Resource<IVPCOptions> {
                 "Type": "AWS::EC2::VPC",
                 "DeletionPolicy": "Delete",
                 "Properties": {
+                    ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                     "EnableDnsSupport": true,
                     "EnableDnsHostnames": true,
                     "CidrBlock": vpc
@@ -61,6 +62,9 @@ export class VPC extends Resource<IVPCOptions> {
             [this.getName(NamePostFix.INTERNET_GATEWAY)]: {
                 "Type": "AWS::EC2::InternetGateway",
                 "DeletionPolicy": "Delete",
+                "Properties": {
+                    ...(this.getTags() ? { "Tags": this.getTags() } : {}),
+                }
             },
             [this.getName(NamePostFix.GATEWAY_ATTACHMENT)]: {
                 "Type": "AWS::EC2::VPCGatewayAttachment",
@@ -78,6 +82,7 @@ export class VPC extends Resource<IVPCOptions> {
                 "Type": "AWS::EC2::RouteTable",
                 "DeletionPolicy": "Delete",
                 "Properties": {
+                    ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                     "VpcId": {
                         "Ref": this.getName(NamePostFix.VPC)
                     }
@@ -110,6 +115,7 @@ export class VPC extends Resource<IVPCOptions> {
                 "Type": "AWS::EC2::Subnet",
                 "DeletionPolicy": "Delete",
                 "Properties": {
+                    ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                     "AvailabilityZone": {
                         "Fn::Select": [
                             index,

@@ -12,19 +12,21 @@ export class Service extends Resource<IServiceOptions> {
     private readonly cluster: Cluster;
     private readonly protocols: Protocol[];
 
-    public constructor(stage: string, options: IServiceOptions, cluster: Cluster) {
+    public constructor(stage: string, options: IServiceOptions, cluster: Cluster, tags?: object) {
         // camelcase a default name
-        super(options, stage, options.name
+        const safeResourceName = options.name
             .toLowerCase() // lowercase everything
             .replace(/[^A-Za-z0-9]/g, ' ') // replace non alphanumeric with soaces
             .split(' ') // split on those spaces
             .filter((piece: string): boolean => piece.trim().length > 0) // make sure we only accept 1 char or more
             .map((piece: string): string => piece.charAt(0).toUpperCase() + piece.substring(1)) // capitalize each piece
-            .join('')); // join back to a single strimg
+            .join('');// join back to a single string
+        //
+        super(options, stage, safeResourceName, tags); 
         this.cluster = cluster;
 
         this.protocols = this.options.protocols.map((serviceProtocolOptions: IServiceProtocolOptions): any => {
-            return new Protocol(cluster, this, stage, serviceProtocolOptions);
+            return new Protocol(cluster, this, stage, serviceProtocolOptions, tags);
         });
 
         this.logGroupName = `serverless-fargate-${options.name}-${stage}-${uuid()}`;
@@ -108,6 +110,7 @@ export class Service extends Resource<IServiceOptions> {
                 "Type": "AWS::ECS::TaskDefinition",
                 "DeletionPolicy": "Delete",
                 "Properties": {
+                    ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                     "Family": `${this.options.name}-${this.stage}`,
                     "Cpu": this.options.cpu,
                     "Memory": this.options.memory,
@@ -160,6 +163,7 @@ export class Service extends Resource<IServiceOptions> {
                 "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
                 "DeletionPolicy": "Delete",
                 "Properties": {
+                    ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                     "HealthCheckIntervalSeconds": this.options.healthCheckInterval ? this.options.healthCheckInterval : 6,
                     "HealthCheckPath": this.options.healthCheckUri ? this.options.healthCheckUri : "/",
                     "HealthCheckProtocol": this.options.healthCheckProtocol ? this.options.healthCheckProtocol : "HTTP",
@@ -188,6 +192,7 @@ export class Service extends Resource<IServiceOptions> {
                 "Type": "AWS::IAM::Role",
                 "DeletionPolicy": "Delete",
                 "Properties": {
+                    ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                     "AssumeRolePolicyDocument": {
                         "Statement": [
                             {
@@ -269,6 +274,7 @@ export class Service extends Resource<IServiceOptions> {
                 "Type": "AWS::IAM::Role",
                 "DeletionPolicy": "Delete",
                 "Properties": {
+                    ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                     "RoleName": this.getName(NamePostFix.AutoScalingRole),
                     "AssumeRolePolicyDocument": {
                         "Statement": [

@@ -8,11 +8,11 @@ export class Cluster extends Resource<IClusterOptions> {
     private readonly vpc: VPC;
     private readonly services: Service[];
 
-    public constructor(stage: string, options: IClusterOptions, vpc: VPC) {
-        super(options, stage, `ECS${options.clusterName}`);
+    public constructor(stage: string, options: IClusterOptions, vpc: VPC, tags?: object) {
+        super(options, stage, `ECS${options.clusterName}`, tags);
         this.vpc = vpc;
         this.services = this.options.services.map((serviceOptions: IServiceOptions): any => {
-            return new Service(this.stage, serviceOptions, this);
+            return new Service(this.stage, serviceOptions, this, tags);
         });
     }
 
@@ -47,13 +47,17 @@ export class Cluster extends Resource<IClusterOptions> {
         return Object.assign({
             [this.getName(NamePostFix.CLUSTER)]: {
                 "Type": "AWS::ECS::Cluster",
-                "DeletionPolicy": "Delete"
+                "DeletionPolicy": "Delete",
+                "Properties": {
+                    ...(this.getTags() ? { "Tags": this.getTags() } : {}),
+                }
             },
             ...this.getClusterSecurityGroups(),
             [this.getName(NamePostFix.LOAD_BALANCER)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
                 "DeletionPolicy": "Delete",
                 "Properties": {
+                    ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                     "Scheme": (this.isPublic() ? "internet-facing" : "internal"),
                     "LoadBalancerAttributes": [
                         {
@@ -85,6 +89,7 @@ export class Cluster extends Resource<IClusterOptions> {
                     "Type": "AWS::EC2::SecurityGroup",
                     "DeletionPolicy": "Delete",
                     "Properties": {
+                        ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                         "GroupDescription": "Access to the Fargate containers",
                         "VpcId": this.getVPC().getRefName()
                     }
@@ -133,6 +138,7 @@ export class Cluster extends Resource<IClusterOptions> {
                     "Type": "AWS::EC2::SecurityGroup",
                     "DeletionPolicy": "Delete",
                     "Properties": {
+                        ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                         "GroupDescription": `Access to the public facing load balancer - task ${service.getName(NamePostFix.SERVICE)}`,
                         "VpcId": this.getVPC().getRefName(),
                         "SecurityGroupIngress": [

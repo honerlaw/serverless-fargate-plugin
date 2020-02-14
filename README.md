@@ -3,22 +3,17 @@
 Based on templates found here: https://github.com/nathanpeck/aws-cloudformation-fargate
 
 #### About
-This plugin will create a cluster, load balancer, vpc, subnets, and one or more services to associate with it. This plugin implements the Public VPC / Public Load Balancer / Public Subnet approach found in the templates above.
+This plugin will create a cluster, load balancer, vpc, subnets, and one or more services to associate with it. This plugin implements the following approaches:
+
+- Public VPC / Public ELB / Public Subnet 
+- Private VPC / Private ELB / Private ELB
 
 If you would like to reference the VPC elsewhere (such as in the [serverless-aurora-plugin](https://github.com/honerlaw/serverless-aurora-plugin)). The VPC will be called `VPC{stage}` where `{stage}` is the stage in the serverless.yml. The subnets will be called `SubnetName{stage}{index}` where `{stage}`is the stage in the serverless.yml, and `{index}` references the index of the subnet that was specified in the subnets array. *THESE ARE NOT ADDED TO OUTPUT*. So you can only reference them in the same serverless.yml / same cf stack.
 
 #### Notes
-- This implements a Public VPC / Public Subnet / Public Load Balancer approach, I may in the future add the other approaches but for now this suites my personal needs.
 - This plugin only supports AWS
 - Docker image must be built / uploaded / and properly tagged
 - It is assumed that the process running in the docker container is listening for HTTP requests.
-
-#### TODO
-- Tests
-- Better TS Definitions
-- Option to not use ELB
-- Auto certification trhough plugin https://github.com/schwamster/serverless-certificate-creator
-- More options
 
 #### Options
 ```javascript
@@ -99,7 +94,7 @@ custom:
       customer: You
       owner: Me
     services:
-    - name: example-service-name
+    - name: example-name
       cpu: 512
       memory: 1024
       port: 80
@@ -129,4 +124,14 @@ custom:
 ```
 
 ####Outputs
-  For the configuration above CF will have the reference `ECSTestClusterExampleServiceNameServiceHTTP`
+  For the configuration above CF will have the reference `ECSTestClusterExampleNameServiceHTTP` to be used on your serverless template as `${cf:stackName.ECSTestClusterExampleNameServiceHTTP}`
+
+  For more information about your stack name, please, check [here] [1] 
+  [1]: https://serverless.com/framework/docs/providers/aws/guide/variables#reference-cloudformation-outputs
+  
+#### TODO
+- Tests
+- Better TS Definitions
+- Option to not use ELB
+- Auto certification through plugin https://github.com/schwamster/serverless-certificate-creator
+- More options

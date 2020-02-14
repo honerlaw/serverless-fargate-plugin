@@ -19,10 +19,15 @@ export enum NamePostFix {
     ROUTE = "PublicRoute",
     ROUTE_TABLE_ASSOCIATION = "SubnetRouteTableAssociation",
 
-    // Service Specific
+    // Service specific
     SERVICE = "Service",
     TASK_DEFINITION = "TDef",
-    TARGET_GROUP = "TGroup"
+    TARGET_GROUP = "TGroup",
+
+    // Service auto scaling specific
+    AutoScalingRole = "ASRole",
+    AutoScalingTarget = "ASTarget", 
+    AutoScalingPolicy = "ASPolicy"
 }
 
 export abstract class Resource<T> {
@@ -52,6 +57,10 @@ export abstract class Resource<T> {
 
     public getNamePrefix(): string {
         return this.namePrefix;
+    }
+
+    public getOutputs(): any {
+        return {};
     }
 
 }

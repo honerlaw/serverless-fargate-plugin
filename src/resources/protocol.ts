@@ -26,6 +26,26 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
         return super.getName(namePostFix) + this.options.protocol.toUpperCase();
     }
 
+    public getOutputs(): any {
+        return {
+            [this.cluster.getName(NamePostFix.CLUSTER) + this.service.getName(NamePostFix.SERVICE) + this.options.protocol]: {
+                "Description": "Elastic load balancer service endpoint",
+                "Value": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            this.options.protocol.toLowerCase(),
+                            "://",
+                            { "Fn::GetAtt": [this.cluster.getName(NamePostFix.LOAD_BALANCER), "DNSName"] },
+                            ":",
+                            this.service.port 
+                        ]
+                    ]
+                }
+            }
+        };
+    }
+
     public generate(): any {
         if (this.options.protocol === "HTTPS" && (!this.options.certificateArns || this.options.certificateArns.length === 0)) {
             throw new Error('Certificate ARN required for HTTPS');
@@ -34,6 +54,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
         var def: any = {
             [this.getName(NamePostFix.LOAD_BALANCER_LISTENER)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::Listener",
+                "DeletionPolicy": "Delete",
                 "DependsOn": [
                     this.cluster.getName(NamePostFix.LOAD_BALANCER)
                 ],
@@ -55,6 +76,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
             },
             [this.getName(NamePostFix.LOAD_BALANCER_LISTENER_RULE)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
+                "DeletionPolicy": "Delete",
                 "Properties": {
                     "Actions": [{
                         "TargetGroupArn": {

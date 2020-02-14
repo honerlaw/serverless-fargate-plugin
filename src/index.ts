@@ -31,11 +31,18 @@ class ServerlessFargatePlugin {
                 const vpc: VPC = new VPC(stage, clusterOption.vpc);
                 const cluster: Cluster = new Cluster(stage, clusterOption, vpc);
 
-                // merge all our stuff into resources
+                // merge current cluster stuff into resources
                 Object.assign(
                     this.serverless.service.provider.compiledCloudFormationTemplate.Resources,
                     vpc.generate(),
                     cluster.generate()
+                );
+
+                // merge current cluster outputs into outputs
+                Object.assign(
+                    this.serverless.service.provider.compiledCloudFormationTemplate.Outputs,
+                    vpc.getOutputs(),
+                    cluster.getOutputs()
                 );
             }
         }

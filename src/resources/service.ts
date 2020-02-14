@@ -43,14 +43,27 @@ export class Service extends Resource<IServiceOptions> {
             this.generateTargetGroup(),
             this.generateLogGroup(),
             ...this.protocols.map((protocol: Protocol): any => protocol.generate()),
+            this.generateAutoscaling(),
             executionRole // could be undefined, so set it last
         );
+    }
+
+    public getOutputs(): any {
+        let outputs = {};
+        this.protocols.forEach((protocol: Protocol) => {
+            outputs = {
+                ...outputs,
+                ...protocol.getOutputs()
+            }
+        }); 
+        return outputs;
     }
 
     private generateService(): object {
         return {
             [this.getName(NamePostFix.SERVICE)]: {
                 "Type": "AWS::ECS::Service",
+                "DeletionPolicy": "Delete",
                 "DependsOn": this.protocols.map((protocol: Protocol): string => {
                     return protocol.getName(NamePostFix.LOAD_BALANCER_LISTENER_RULE)
                 }),
@@ -93,6 +106,7 @@ export class Service extends Resource<IServiceOptions> {
         return {
             [this.getName(NamePostFix.TASK_DEFINITION)]: {
                 "Type": "AWS::ECS::TaskDefinition",
+                "DeletionPolicy": "Delete",
                 "Properties": {
                     "Family": `${this.options.name}-${this.stage}`,
                     "Cpu": this.options.cpu,
@@ -144,6 +158,7 @@ export class Service extends Resource<IServiceOptions> {
         return {
             [this.getName(NamePostFix.TARGET_GROUP)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+                "DeletionPolicy": "Delete",
                 "Properties": {
                     "HealthCheckIntervalSeconds": this.options.healthCheckInterval ? this.options.healthCheckInterval : 6,
                     "HealthCheckPath": this.options.healthCheckUri ? this.options.healthCheckUri : "/",
@@ -171,6 +186,7 @@ export class Service extends Resource<IServiceOptions> {
         return {
             [Service.EXECUTION_ROLE_NAME]: {
                 "Type": "AWS::IAM::Role",
+                "DeletionPolicy": "Delete",
                 "Properties": {
                     "AssumeRolePolicyDocument": {
                         "Statement": [
@@ -218,6 +234,7 @@ export class Service extends Resource<IServiceOptions> {
         return {
             [this.getName(NamePostFix.LOG_GROUP)]: {
                 "Type": "AWS::Logs::LogGroup",
+                "DeletionPolicy": "Delete",
                 "Properties": {
                     "LogGroupName": this.logGroupName,
                     "RetentionInDays": 30
@@ -240,6 +257,80 @@ export class Service extends Resource<IServiceOptions> {
         if (this.cluster.getVPC().useExistingVPC()) {
             return this.cluster.getVPC().getSecurityGroups();  
         } return [{ "Ref": this.cluster.getName(NamePostFix.CONTAINER_SECURITY_GROUP) }];
+    }
+
+    /* Auto scaling service -- this also could be moved to another class */
+
+    private generateAutoscaling() {
+        if (!this.options.autoScale) return {};
+        //Generate auto scaling for this service
+        return {
+            [this.getName(NamePostFix.AutoScalingRole)]: {
+                "Type": "AWS::IAM::Role",
+                "DeletionPolicy": "Delete",
+                "Properties": {
+                    "RoleName": this.getName(NamePostFix.AutoScalingRole),
+                    "AssumeRolePolicyDocument": {
+                        "Statement": [
+                            {
+                                "Effect": "Allow",
+                                "Action": "sts:AssumeRole",
+                                "Principal": {
+                                    "Service": "ecs-tasks.amazonaws.com",
+                                }
+                            }
+                        ]
+                    },
+                    "ManagedPolicyArns": [
+                        "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceAutoscaleRole"
+                    ]
+                }
+            },
+            [this.getName(NamePostFix.AutoScalingTarget)]: {
+                "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+                "DeletionPolicy": "Delete",
+                "Properties": {
+                    "MinCapacity": this.options.autoScale.min || 1,
+                    "MaxCapacity": this.options.autoScale.max || 1,
+                    "ScalableDimension": "ecs:service:DesiredCount",
+                    "ServiceNamespace": "ecs",
+                    "ResourceId": {
+                        "Fn::Join": [
+                            "/",
+                            [
+                                "service", 
+                                { "Ref": this.cluster.getName(NamePostFix.CLUSTER) },
+                                { "Fn::GetAtt": [ this.getName(NamePostFix.SERVICE), "Name" ] }
+                            ]
+                        ]
+                    },
+                    "RoleARN": {
+                        "Fn::GetAtt": [
+                            this.getName(NamePostFix.AutoScalingRole), "Arn"
+                        ]
+                    }
+                }
+            },
+            [this.getName(NamePostFix.AutoScalingPolicy)]: {
+                "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
+                "DeletionPolicy": "Delete",
+                "Properties": {
+                    "PolicyName": this.getName(NamePostFix.AutoScalingPolicy),
+                    "PolicyType": "TargetTrackingScaling",
+                    "ScalingTargetId": {
+                        "Ref": this.getName(NamePostFix.AutoScalingTarget)
+                    },
+                    "TargetTrackingScalingPolicyConfiguration": {
+                        "ScaleInCooldown": this.options.autoScale.cooldownIn || this.options.autoScale.cooldown || 30,
+                        "ScaleOutCooldown": this.options.autoScale.cooldownOut || this.options.autoScale.cooldown || 30,
+                        "TargetValue": this.options.autoScale.targetValue,
+                        "PredefinedMetricSpecification": {
+                            "PredefinedMetricType": this.options.autoScale.metric,
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }

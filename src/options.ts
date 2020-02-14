@@ -13,11 +13,38 @@ export interface IServiceProtocolOptions {
     certificateArns?: string[]; // needed for https
 }
 
+enum AutoScalingMetricType {
+    ALBRequestCountPerTarget,
+    AppStreamAverageCapacityUtilization,
+    ComprehendInferenceUtilization,
+    DynamoDBReadCapacityUtilization,
+    DynamoDBWriteCapacityUtilization,
+    EC2SpotFleetRequestAverageCPUUtilization,
+    EC2SpotFleetRequestAverageNetworkIn,
+    EC2SpotFleetRequestAverageNetworkOut,
+    ECSServiceAverageCPUUtilization,
+    ECSServiceAverageMemoryUtilization,
+    LambdaProvisionedConcurrencyUtilization,
+    RDSReaderAverageCPUUtilization,
+    RDSReaderAverageDatabaseConnections,
+    SageMakerVariantInvocationsPerInstance
+};
+
+export interface IServiceAutoScalingOptions {
+    min?: number; //default to 1
+    max?: number; //default to 1
+    metric: AutoScalingMetricType;
+    cooldown?: number; //defaults to 30
+    cooldownIn?: number; //defaults to cooldown but has priority over it
+    cooldownOut?: number; //defaults to cooldown but has priority over it
+    targetValue: number;
+}
+
 export interface IServiceOptions {
     name: string;
     cpu: number;
     memory: number;
-    port: number;
+    port?: number;
     entryPoint: string[];
     environment: { [key: string]: string };
     protocols: IServiceProtocolOptions[];
@@ -27,6 +54,7 @@ export interface IServiceOptions {
     priority?: number; // priority for routing, defaults to 1
     path?: string; // path the LB should send traffic to, defaults '*' (everything)
     desiredCount?: number; // defaults to 1
+    autoScale?: IServiceAutoScalingOptions;
     taskRoleArn?: string;
     healthCheckUri?: string; // defaults to "/"
     healthCheckProtocol?: string; // defaults to "HTTP"

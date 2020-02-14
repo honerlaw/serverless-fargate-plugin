@@ -12,6 +12,10 @@ export class VPC extends Resource<IVPCOptions> {
             .map((subnet: string, index: number): string => `${this.getName(NamePostFix.SUBNET_NAME)}${index}`));
     }
 
+    public getOutputs(): any {
+        return {};
+    }
+
     public useExistingVPC(): boolean {
         return !!(this.options.vpcId && 
                   this.options.securityGroupIds && 
@@ -47,6 +51,7 @@ export class VPC extends Resource<IVPCOptions> {
         return Object.assign({
             [this.getName(NamePostFix.VPC)]: {
                 "Type": "AWS::EC2::VPC",
+                "DeletionPolicy": "Delete",
                 "Properties": {
                     "EnableDnsSupport": true,
                     "EnableDnsHostnames": true,
@@ -54,10 +59,12 @@ export class VPC extends Resource<IVPCOptions> {
                 }
             },
             [this.getName(NamePostFix.INTERNET_GATEWAY)]: {
-                "Type": "AWS::EC2::InternetGateway"
+                "Type": "AWS::EC2::InternetGateway",
+                "DeletionPolicy": "Delete",
             },
             [this.getName(NamePostFix.GATEWAY_ATTACHMENT)]: {
                 "Type": "AWS::EC2::VPCGatewayAttachment",
+                "DeletionPolicy": "Delete",
                 "Properties": {
                     "VpcId": {
                         "Ref": this.getName(NamePostFix.VPC)
@@ -69,6 +76,7 @@ export class VPC extends Resource<IVPCOptions> {
             },
             [this.getName(NamePostFix.ROUTE_TABLE)]: {
                 "Type": "AWS::EC2::RouteTable",
+                "DeletionPolicy": "Delete",
                 "Properties": {
                     "VpcId": {
                         "Ref": this.getName(NamePostFix.VPC)
@@ -77,6 +85,7 @@ export class VPC extends Resource<IVPCOptions> {
             },
             [this.getName(NamePostFix.ROUTE)]: {
                 "Type": "AWS::EC2::Route",
+                "DeletionPolicy": "Delete",
                 "DependsOn": this.getName(NamePostFix.GATEWAY_ATTACHMENT),
                 "Properties": {
                     "RouteTableId": {
@@ -99,6 +108,7 @@ export class VPC extends Resource<IVPCOptions> {
             const def: any = {};
             def[subnetName] = {
                 "Type": "AWS::EC2::Subnet",
+                "DeletionPolicy": "Delete",
                 "Properties": {
                     "AvailabilityZone": {
                         "Fn::Select": [
@@ -119,6 +129,7 @@ export class VPC extends Resource<IVPCOptions> {
             };
             def[`${this.getName(NamePostFix.ROUTE_TABLE_ASSOCIATION)}${index}`] = {
                 "Type": "AWS::EC2::SubnetRouteTableAssociation",
+                "DeletionPolicy": "Delete",
                     "Properties": {
                     "SubnetId": {
                         "Ref": subnetName

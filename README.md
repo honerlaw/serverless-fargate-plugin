@@ -16,8 +16,6 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
 #### TODO
 - Tests
 - Better TS Definitions
-- Outputs for certain resources
-- Autoscaling
 - Option to not use ELB
 - Add custom tagging
 - Auto certification trhough plugin https://github.com/schwamster/serverless-certificate-creator
@@ -50,6 +48,15 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
             protocol: "HTTP" | "HTTPS";
             certificateArns?: string[]; // needed for https
         }>;
+        autoScale: {
+              min?: number; //default to 1
+              max?: number; //default to 1
+              metric: AutoScalingMetricType;
+              cooldown?: number; //defaults to 30
+              cooldownIn?: number; //defaults to cooldown but has priority over it
+              cooldownOut?: number; //defaults to cooldown but has priority over it
+              targetValue: number;
+        }
         image?: string; // full image name, REPOSITORY[:TAG]
         imageRepository?: string; // image repository (used if image option is not provided)
         imageTag?: string; // image tag (used if image option is not provided)
@@ -78,6 +85,7 @@ plugins:
 
 custom:
   fargate:
+    clusterName: Test
     vpc:
       cidr: 10.0.0.0/16
       subnets:
@@ -92,6 +100,13 @@ custom:
       healthCheckInterval: 6
       imageTag: 1.0.0
       imageRepository: xxx.amazonaws.com/xxx
+      autoScale:
+        min: 1
+        max: 10
+        cooldownIn: 30
+        cooldownOut: 60
+        metric: ECSServiceAverageCPUUtilization
+        targetValue: 75
       entryPoint:
       - npm
       - run
@@ -105,3 +120,6 @@ custom:
         - xxxx
 
 ```
+
+####Outputs
+  For the configuration above CF will have the reference `ECSTestClusterExampleServiceNameServiceHTTP`

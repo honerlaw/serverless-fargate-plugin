@@ -17,6 +17,10 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
 - Tests
 - Better TS Definitions
 - Outputs for certain resources
+- Autoscaling
+- Option to not use ELB
+- Add custom tagging
+- Auto certification trhough plugin https://github.com/schwamster/serverless-certificate-creator
 - More options
 
 #### Options
@@ -24,14 +28,22 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
 {
     executionRoleArn?: string; // execution role for services, generated if not specified
     vpc: {
+        //if this options are specified it will create a VPC
         cidr: string;
         subnets: string[]; // subnet cidrs
+        //If this options are specified it will attach to existing VPC.
+        //all of then are required, if one missing it will turn to self-created 
+        //VPC as described above
+        vpcId: string;
+        securityGroupIds: string[]
+        subnetIds: string[]
     };
     services: Array<{
         name: string; // name of the service
         cpu: number;
         memory: number;
-        port: number; // docker port (the port exposed on the docker image)
+        public: boolean; //Will it be facing internet? This affects directly what security groups will be auto created
+        port: number; // docker port (the port exposed on the docker image) - if not specified random port will be used - usefull for busy private subnets 
         entryPoint: string[]; // same as docker's entry point
         environment: { [key: string]: string }; // environment variables passed to docker container
         protocols: Array<{
@@ -43,7 +55,7 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
         imageTag?: string; // image tag (used if image option is not provided)
         priority?: number; // priority for routing, defaults to 1
         path?: string; // path the Load Balancer should send traffic to, defaults to '*'
-        desiredCount?: number; // defaults to 1
+        desiredCount?: number; // number of tasks wanted by default - if not specified defaults to 1
         taskRoleArn?: string;
         healthCheckUri?: string; // defaults to "/"
         healthCheckProtocol?: string; // defaults to "HTTP"

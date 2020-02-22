@@ -49,7 +49,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                     "LoadBalancerArn": {
                         "Ref": this.cluster.getName(NamePostFix.LOAD_BALANCER)
                     },
-                    "Port": PORT_MAP[this.options.protocol],
+                    "Port": this.service.port,
                     "Protocol": this.options.protocol
                 }
             },

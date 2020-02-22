@@ -3,22 +3,47 @@ import {NamePostFix, Resource} from "../resource";
 
 export class VPC extends Resource<IVPCOptions> {
 
-    private readonly subnetNames: string[];
+    private readonly subnets: string[];
 
     public constructor(stage: string, options: IVPCOptions) {
         super(options, stage);
-        this.subnetNames = this.options.subnets
-            .map((subnet: string, index: number): string => `${this.getName(NamePostFix.SUBNET_NAME)}${index}`);
+        //subnetIds don't enforce mapping due allowance of instrinsict functions object
+        this.subnets = (this.useExistingVPC() ? this.options.subnetIds : this.options.subnets
+            .map((subnet: string, index: number): string => `${this.getName(NamePostFix.SUBNET_NAME)}${index}`));
     }
 
-    public getSubnetNames(): string[] {
-        return this.subnetNames;
+    public useExistingVPC(): boolean {
+        return !!(this.options.vpcId && 
+                  this.options.securityGroupIds && 
+                  this.options.subnetIds);
+    }
+
+    public getRefName(): any {
+        if (this.useExistingVPC()) return this.options.vpcId;
+        return { "Ref": super.getName(NamePostFix.VPC) };
+    }
+
+    public getSecurityGroups(): string[] {
+        return this.options.securityGroupIds;
+    }
+
+    public getSubnets(): any[] {
+        return (this.useExistingVPC() ? this.options.subnetIds : this.subnets.map(subnet => ({
+            "Ref": subnet
+        })));
     }
 
     public generate(): any {
         const vpc: string = this.options.cidr;
         const subnets: string[] = this.options.subnets;
+        //vpc in generate only if no existing vpc is specified
+        if (!this.useExistingVPC()) return this.generateVPC(vpc, subnets);
+        return null;
+    }
 
+    /* self created VPC */
+
+    private generateVPC(vpc: string, subnets: string[]): any {
         return Object.assign({
             [this.getName(NamePostFix.VPC)]: {
                 "Type": "AWS::EC2::VPC",
@@ -65,12 +90,12 @@ export class VPC extends Resource<IVPCOptions> {
             },
         }, ...this.generateSubnets(subnets));
     }
-
+    
     private generateSubnets(subnets: string[]): any[] {
-        const subnetNames: string[] = this.getSubnetNames();
+        const subnetNames: string[] = this.options.subnets;
 
         return subnets.map((subnet: string, index: number): object => {
-            const subnetName: string = subnetNames[index];
+            const subnetName: string = `${this.getName(NamePostFix.SUBNET_NAME)}${index}`;
             const def: any = {};
             def[subnetName] = {
                 "Type": "AWS::EC2::Subnet",

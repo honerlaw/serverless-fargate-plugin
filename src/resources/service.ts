@@ -8,6 +8,7 @@ export class Service extends Resource<IServiceOptions> {
 
     private static readonly EXECUTION_ROLE_NAME: string = "ECSServiceExecutionRole";
     private readonly logGroupName: string;
+    public readonly port: number;
     private readonly cluster: Cluster;
     private readonly protocols: Protocol[];
 
@@ -27,6 +28,9 @@ export class Service extends Resource<IServiceOptions> {
         });
 
         this.logGroupName = `serverless-fargate-${options.name}-${stage}-${uuid()}`;
+
+        this.port = (this.options.port || (Math.floor(Math.random() * 49151) + 1024))
+        console.debug(`Serverless: fargate-plugin: Using port ${this.port} for service ${options.name} on cluster ${cluster.getName(NamePostFix.CLUSTER)}`);
     }
 
     public generate(): any {
@@ -63,16 +67,9 @@ export class Service extends Resource<IServiceOptions> {
                     "DesiredCount": this.options.desiredCount ? this.options.desiredCount : 1,
                     "NetworkConfiguration": {
                         "AwsvpcConfiguration": {
-                            "AssignPublicIp": "ENABLED",
-                            "SecurityGroups": [
-                                {
-                                    "Ref": this.cluster.getName(NamePostFix.CONTAINER_SECURITY_GROUP)
-                                }
-                            ],
-                            "Subnets": this.cluster.getVPC().getSubnetNames().map((subnetName: string): any => ({
-                                "Ref": subnetName
-                            }))
-
+                            "AssignPublicIp": (this.cluster.isPublic() ? "ENABLED" : "DISABLED"),
+                            "SecurityGroups": this.getSecurityGroups(),
+                            "Subnets": this.cluster.getVPC().getSubnets()
                         }
                     },
                     "TaskDefinition": {
@@ -81,7 +78,7 @@ export class Service extends Resource<IServiceOptions> {
                     "LoadBalancers": [
                         {
                             "ContainerName": this.getName(NamePostFix.CONTAINER_NAME),
-                            "ContainerPort": this.options.port,
+                            "ContainerPort": this.port,
                             "TargetGroupArn": {
                                 "Ref": this.getName(NamePostFix.TARGET_GROUP)
                             }
@@ -114,10 +111,10 @@ export class Service extends Resource<IServiceOptions> {
                             "Cpu": this.options.cpu,
                             "Memory": this.options.memory,
                             "Image": this.options.image || `${this.options.imageRepository}:${this.options.name}-${this.options.imageTag}`,
-                            "EntryPoint": this.options.entryPoint,
+                            ...(this.options.entryPoint ? { "EntryPoint": this.options.entryPoint } : {}),
                             "PortMappings": [
                                 {
-                                    "ContainerPort": this.options.port
+                                    "ContainerPort": this.port
                                 }
                             ],
                             "LogConfiguration": {
@@ -155,12 +152,10 @@ export class Service extends Resource<IServiceOptions> {
                     "HealthyThresholdCount": 2,
                     "TargetType": "ip",
                     "Name": this.getName(NamePostFix.TARGET_GROUP),
-                    "Port": this.options.port,
+                    "Port": this.port,
                     "Protocol": "HTTP",
                     "UnhealthyThresholdCount": 2,
-                    "VpcId": {
-                        "Ref": this.cluster.getVPC().getName(NamePostFix.VPC)
-                    }
+                    "VpcId": this.cluster.getVPC().getRefName()
                 }
             }
         };
@@ -239,6 +234,12 @@ export class Service extends Resource<IServiceOptions> {
         return {
             "Ref": Service.EXECUTION_ROLE_NAME
         };
+    }
+
+    private getSecurityGroups(): any {
+        if (this.cluster.getVPC().useExistingVPC()) {
+            return this.cluster.getVPC().getSecurityGroups();  
+        } return [{ "Ref": this.cluster.getName(NamePostFix.CONTAINER_SECURITY_GROUP) }];
     }
 
 }

@@ -31,6 +31,9 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
         return {
             [this.cluster.getName(NamePostFix.CLUSTER) + this.service.getName(NamePostFix.SERVICE) + this.options.protocol]: {
                 "Description": "Elastic load balancer service endpoint",
+                "Export": {
+                    "Name": this.cluster.getName(NamePostFix.CLUSTER) + this.service.getName(NamePostFix.SERVICE) + this.options.protocol
+                },
                 "Value": {
                     "Fn::Join": [
                         "",

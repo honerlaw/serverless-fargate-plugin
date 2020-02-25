@@ -74,6 +74,7 @@ export class Service extends Resource<IServiceOptions> {
                     "Cluster": {
                         "Ref": this.cluster.getName(NamePostFix.CLUSTER)
                     },
+                    ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                     "LaunchType": "FARGATE",
                     "DeploymentConfiguration": {
                         "MaximumPercent": 200,

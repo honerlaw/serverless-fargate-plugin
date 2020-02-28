@@ -54,6 +54,7 @@ export abstract class Resource<T> {
     }
 
     public abstract generate(): any;
+    public abstract getOutputs(): any;
 
     public getName(namePostFix: NamePostFix): string {
         if (this.namePrefix) {
@@ -68,10 +69,6 @@ export abstract class Resource<T> {
 
     public getNamePrefix(): string {
         return this.namePrefix;
-    }
-
-    public getOutputs(): any {
-        return {};
     }
 
 }

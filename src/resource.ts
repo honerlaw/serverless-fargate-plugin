@@ -19,10 +19,15 @@ export enum NamePostFix {
     ROUTE = "PublicRoute",
     ROUTE_TABLE_ASSOCIATION = "SubnetRouteTableAssociation",
 
-    // Service Specific
+    // Service specific
     SERVICE = "Service",
     TASK_DEFINITION = "TDef",
-    TARGET_GROUP = "TGroup"
+    TARGET_GROUP = "TGroup",
+
+    // Service auto scaling specific
+    AutoScalingRole = "ASRole",
+    AutoScalingTarget = "ASTarget", 
+    AutoScalingPolicy = "ASPolicy"
 }
 
 export abstract class Resource<T> {
@@ -30,14 +35,26 @@ export abstract class Resource<T> {
     protected readonly options: T;
     protected readonly stage: string;
     private readonly namePrefix: string | undefined;
+    protected readonly tags?: object;
 
-    public constructor(options: T, stage: string, namePrefix?: string | undefined) {
+    public constructor(options: T, stage: string, namePrefix?: string | undefined, tags?: object) {
         this.options = options;
         this.stage = stage;
         this.namePrefix = namePrefix;
+        this.tags = tags;
+    }
+
+    public getTags(): Array<object> | null {
+        if (this.tags && Object.keys(this.tags).length > 0) {
+            return Object.keys(this.tags).map( (tagKey: string) => ({
+                "Key": tagKey,
+                "Value": this.tags[tagKey]
+            }));
+        } return null;
     }
 
     public abstract generate(): any;
+    public abstract getOutputs(): any;
 
     public getName(namePostFix: NamePostFix): string {
         if (this.namePrefix) {

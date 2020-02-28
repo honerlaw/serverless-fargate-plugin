@@ -16,14 +16,38 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
     public constructor(cluster: Cluster,
                        service: Service,
                        stage: string,
-                       options: IServiceProtocolOptions) {
-        super(options, stage, service.getNamePrefix());
+                       options: IServiceProtocolOptions, 
+                       tags?: object) {
+        super(options, stage, service.getNamePrefix(), tags);
         this.cluster = cluster;
         this.service = service;
     }
 
     public getName(namePostFix: NamePostFix): string {
         return super.getName(namePostFix) + this.options.protocol.toUpperCase();
+    }
+
+    public getOutputs(): any {
+        return {
+            [this.cluster.getName(NamePostFix.CLUSTER) + this.service.getName(NamePostFix.SERVICE) + this.options.protocol]: {
+                "Description": "Elastic load balancer service endpoint",
+                "Export": {
+                    "Name": this.cluster.getName(NamePostFix.CLUSTER) + this.service.getName(NamePostFix.SERVICE) + this.options.protocol
+                },
+                "Value": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            this.options.protocol.toLowerCase(),
+                            "://",
+                            { "Fn::GetAtt": [this.cluster.getName(NamePostFix.LOAD_BALANCER), "DNSName"] },
+                            ":",
+                            this.service.port 
+                        ]
+                    ]
+                }
+            }
+        };
     }
 
     public generate(): any {
@@ -34,6 +58,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
         var def: any = {
             [this.getName(NamePostFix.LOAD_BALANCER_LISTENER)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::Listener",
+                "DeletionPolicy": "Delete",
                 "DependsOn": [
                     this.cluster.getName(NamePostFix.LOAD_BALANCER)
                 ],
@@ -55,6 +80,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
             },
             [this.getName(NamePostFix.LOAD_BALANCER_LISTENER_RULE)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
+                "DeletionPolicy": "Delete",
                 "Properties": {
                     "Actions": [{
                         "TargetGroupArn": {

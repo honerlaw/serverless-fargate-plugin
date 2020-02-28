@@ -3,12 +3,16 @@
   "version": "1.2.1",
   "description": "A simple plugin to stand up an ECS FARGATE Cluster with a couple of services.",
   "main": "index.js",
+  "homepage": "https://github.com/honerlaw/serverless-fargate-plugin/issues",
   "scripts": {
     "clean": "rm -rf ./*.js ./*.js.map ./bin/ ./.serverless/ ./resources/",
     "build": "npm run clean && tsc -p ./tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Derek Honerlaw",
+  "contributors": [
+    { "name": "Gabriel Pacheco", "email": "gabriel.wady@gmail.com" }
+  ],
   "license": "MIT",
   "devDependencies": {
     "typescript": "^3.1.6"

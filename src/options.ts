@@ -17,7 +17,7 @@ export interface IServiceOptions {
     name: string;
     cpu: number;
     memory: number;
-    port: number;
+    port?: number; // docker port (the port exposed on the docker image) - if not specified random port will be used - usefull for busy private subnets 
     entryPoint: string[];
     environment: { [key: string]: string };
     protocols: IServiceProtocolOptions[];

@@ -8,16 +8,27 @@ export class Cluster extends Resource<IClusterOptions> {
     private readonly vpc: VPC;
     private readonly services: Service[];
 
-    public constructor(stage: string, options: IClusterOptions, vpc: VPC) {
-        super(options, stage, 'ECS');
+    public constructor(stage: string, options: IClusterOptions, vpc: VPC, tags?: object) {
+        super(options, stage, `ECS${options.clusterName}`, tags);
         this.vpc = vpc;
         this.services = this.options.services.map((serviceOptions: IServiceOptions): any => {
-            return new Service(this.stage, serviceOptions, this);
+            return new Service(this.stage, serviceOptions, this, tags);
         });
     }
 
     public getExecutionRoleArn(): string | undefined {
         return this.options.executionRoleArn;
+    }
+
+    public getOutputs(): any {
+        let outputs = {};
+        this.services.forEach((service: Service) => {
+            outputs = {
+                ...outputs,
+                ...service.getOutputs()
+            }
+        });
+        return outputs;
     }
 
     public getVPC(): VPC {
@@ -28,11 +39,6 @@ export class Cluster extends Resource<IClusterOptions> {
         return this.options.public;
     }
 
-    public getName(namePostFix: NamePostFix): string {
-        namePostFix = <NamePostFix>(namePostFix.toString() + this.options.clusterName);
-        return super.getName(namePostFix);
-    }
-
     public generate(): any {
 
         // generate the defs for each service
@@ -40,12 +46,18 @@ export class Cluster extends Resource<IClusterOptions> {
 
         return Object.assign({
             [this.getName(NamePostFix.CLUSTER)]: {
-                "Type": "AWS::ECS::Cluster"
+                "Type": "AWS::ECS::Cluster",
+                "DeletionPolicy": "Delete",
+                "Properties": {
+                    ...(this.getTags() ? { "Tags": this.getTags() } : {}),
+                }
             },
             ...this.getClusterSecurityGroups(),
             [this.getName(NamePostFix.LOAD_BALANCER)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+                "DeletionPolicy": "Delete",
                 "Properties": {
+                    ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                     "Scheme": (this.isPublic() ? "internet-facing" : "internal"),
                     "LoadBalancerAttributes": [
                         {
@@ -55,10 +67,13 @@ export class Cluster extends Resource<IClusterOptions> {
                     ],
                     "Subnets": this.getVPC().getSubnets(),
                     "SecurityGroups": this.getELBSecurityGroups()
-                }
+                },
             },
         }, ...defs);
     }
+
+
+    /* Security groups -- this pontetially could be moved to another class */
 
     private getELBSecurityGroups(): any {;
         if (this.getVPC().useExistingVPC()) {
@@ -72,13 +87,16 @@ export class Cluster extends Resource<IClusterOptions> {
             return {
                 [this.getName(NamePostFix.CONTAINER_SECURITY_GROUP)]: {
                     "Type": "AWS::EC2::SecurityGroup",
+                    "DeletionPolicy": "Delete",
                     "Properties": {
+                        ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                         "GroupDescription": "Access to the Fargate containers",
                         "VpcId": this.getVPC().getRefName()
                     }
                 },
                 [this.getName(NamePostFix.SECURITY_GROUP_INGRESS_SELF)]: {
                     "Type": "AWS::EC2::SecurityGroupIngress",
+                    "DeletionPolicy": "Delete",
                     "Properties": {
                         "Description": "Ingress from other containers in the same security group",
                         "GroupId": {
@@ -118,7 +136,9 @@ export class Cluster extends Resource<IClusterOptions> {
             ...(this.options.public ? {
                 [ELBServiceSecGroup]: {
                     "Type": "AWS::EC2::SecurityGroup",
+                    "DeletionPolicy": "Delete",
                     "Properties": {
+                        ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                         "GroupDescription": `Access to the public facing load balancer - task ${service.getName(NamePostFix.SERVICE)}`,
                         "VpcId": this.getVPC().getRefName(),
                         "SecurityGroupIngress": [
@@ -132,6 +152,7 @@ export class Cluster extends Resource<IClusterOptions> {
                 },
                 [this.getName(NamePostFix.SECURITY_GROUP_INGRESS_ALB)]: {
                     "Type": "AWS::EC2::SecurityGroupIngress",
+                    "DeletionPolicy": "Delete",
                     "Properties": {
                         "Description": `Ingress from the ALB - task ${service.getName(NamePostFix.SERVICE)}`,
                         "GroupId": {

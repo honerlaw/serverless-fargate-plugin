@@ -127,6 +127,7 @@ custom:
   For the configuration above CF will have the reference `ECSTestClusterExampleNameServiceHTTP` to be used on your serverless template as `${cf:stackName.ECSTestClusterExampleNameServiceHTTP}`
 
   For more information about your stack name, please, check [here] [1] 
+  
   [1]: https://serverless.com/framework/docs/providers/aws/guide/variables#reference-cloudformation-outputs
   
 #### TODO

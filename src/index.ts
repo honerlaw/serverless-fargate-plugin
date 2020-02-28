@@ -28,7 +28,6 @@ class ServerlessFargatePlugin {
         //For each cluster
         for (let clusterOption of options) {
             if (clusterOption && clusterOption.vpc) { //sanity check for empty objects
-                const index = options.indexOf(clusterOption);
                 //multiple self-created VPCs will be a problem here, TODO: solve this with cluster prefix on resouces
                 const vpc: VPC = new VPC(stage, clusterOption.vpc);
                 const cluster: Cluster = new Cluster(stage, clusterOption, vpc);

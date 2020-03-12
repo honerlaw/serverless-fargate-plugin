@@ -53,11 +53,10 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
 
     public generate(): any {
         if (this.cluster.getOptions().disableELB) return {};
-        //
         if (this.options.protocol === "HTTPS" && (!this.options.certificateArns || this.options.certificateArns.length === 0)) {
             throw new Error('Certificate ARN required for HTTPS');
         }
-        //
+
         var def: any = {
             [this.getName(NamePostFix.LOAD_BALANCER_LISTENER)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::Listener",

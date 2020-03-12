@@ -53,22 +53,24 @@ export class Cluster extends Resource<IClusterOptions> {
                 }
             },
             ...this.getClusterSecurityGroups(),
-            [this.getName(NamePostFix.LOAD_BALANCER)]: {
-                "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
-                "DeletionPolicy": "Delete",
-                "Properties": {
-                    ...(this.getTags() ? { "Tags": this.getTags() } : {}),
-                    "Scheme": (this.isPublic() ? "internet-facing" : "internal"),
-                    "LoadBalancerAttributes": [
-                        {
-                            "Key": "idle_timeout.timeout_seconds",
-                            "Value": "30"
-                        }
-                    ],
-                    "Subnets": this.getVPC().getSubnets(),
-                    "SecurityGroups": this.getELBSecurityGroups()
-                },
-            },
+            ...(this.options.disableELB ? {} : {
+                [this.getName(NamePostFix.LOAD_BALANCER)]: {
+                    "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+                    "DeletionPolicy": "Delete",
+                    "Properties": {
+                        ...(this.getTags() ? { "Tags": this.getTags() } : {}),
+                        "Scheme": (this.isPublic() ? "internet-facing" : "internal"),
+                        "LoadBalancerAttributes": [
+                            {
+                                "Key": "idle_timeout.timeout_seconds",
+                                "Value": "30"
+                            }
+                        ],
+                        "Subnets": this.getVPC().getSubnets(),
+                        "SecurityGroups": this.getELBSecurityGroups()
+                    },
+                }
+            }),
         }, ...defs);
     }
 

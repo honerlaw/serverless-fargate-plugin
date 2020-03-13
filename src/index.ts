@@ -45,7 +45,7 @@ class ServerlessFargatePlugin {
                     vpc.getOutputs(),
                     cluster.getOutputs()
                 );
-            }
+            } else console.info('serverless-fargate-plugin: skipping cluster creation, missing informations (check required VPC).');
         }
     }
 

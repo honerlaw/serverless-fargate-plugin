@@ -152,7 +152,7 @@ export class Service extends Resource<IServiceOptions> {
                         this.options.environment && {
                             "Environment": Object.keys(this.options.environment).map(name => ({
                                 "Name": name,
-                                "Value": String(this.options.environment[name]),
+                                "Value": this.options.environment[name],
                             }))
                         })
                     ]

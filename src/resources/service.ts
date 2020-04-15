@@ -76,6 +76,7 @@ export class Service extends Resource<IServiceOptions> {
                         "Ref": this.cluster.getName(NamePostFix.CLUSTER)
                     },
                     ...(this.getTags() ? { "Tags": this.getTags() } : {}),
+                    "EnableECSManagedTags": true,
                     "LaunchType": "FARGATE",
                     "DeploymentConfiguration": {
                         "MaximumPercent": 200,

@@ -46,13 +46,14 @@ export interface IServiceOptions {
     memory: number;
     port?: number; // docker port (the port exposed on the docker image) - if not specified random port will be used - usefull for busy private subnets 
     entryPoint: string[]; //custom container entry point
+    disableELB?: boolean; //useful for disabling ELB listeners on a cluster that has ELB and more tasks with ELB enabled
     environment: { [key: string]: string };
     protocols: IServiceProtocolOptions[];
     image?: string;
     imageRepository?: string;
     imageTag?: string;
     priority?: number; // priority for routing, defaults to 1
-    path?: string; // path the LB should send traffic to, defaults '*' (everything)
+    path?: string | { path: string, method?: string }[]; // path the LB should send traffic to, defaults '*' (everything)
     desiredCount?: number; // defaults to 1
     autoScale?: IServiceAutoScalingOptions;
     taskRoleArn?: string;

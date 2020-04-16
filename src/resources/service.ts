@@ -8,9 +8,9 @@ export class Service extends Resource<IServiceOptions> {
 
     private static readonly EXECUTION_ROLE_NAME: string = "ECSServiceExecutionRole";
     private readonly logGroupName: string;
-    public readonly port: number;
+    public readonly ports: number[];
     private readonly cluster: Cluster;
-    private readonly protocols: Protocol[];
+    public readonly protocols: Protocol[];
 
     public constructor(stage: string, options: IServiceOptions, cluster: Cluster, tags?: object) {
         // camelcase a default name
@@ -24,14 +24,14 @@ export class Service extends Resource<IServiceOptions> {
         //
         super(options, stage, safeResourceName, tags); 
         this.cluster = cluster;
-        this.protocols = (this.cluster.getOptions().disableELB ? [] : this.options.protocols.map((serviceProtocolOptions: IServiceProtocolOptions): any => {
-            return new Protocol(cluster, this, stage, serviceProtocolOptions, tags);
+        this.ports = [];
+        this.protocols = (this.cluster.getOptions().disableELB || this.options.disableELB ? [] : this.options.protocols.map((serviceProtocolOptions: IServiceProtocolOptions, index): any => {
+            //use specified port for the first protocol
+            this.ports[index] = (this.options.port && index == 0 ? this.options.port : (Math.floor(Math.random() * 49151) + 1024));
+            console.debug(`Serverless: fargate-plugin: Using port ${this.ports[index]} for service ${options.name} on cluster ${cluster.getName(NamePostFix.CLUSTER)} - protocol ${serviceProtocolOptions.protocol}`);
+            return new Protocol(cluster, this, stage, serviceProtocolOptions, this.ports[index], tags);
         }));
-
         this.logGroupName = `serverless-fargate-${options.name}-${stage}-${uuid()}`;
-
-        this.port = (this.options.port || (Math.floor(Math.random() * 49151) + 1024))
-        console.debug(`Serverless: fargate-plugin: Using port ${this.port} for service ${options.name} on cluster ${cluster.getName(NamePostFix.CLUSTER)}`);
     }
 
     public generate(): any {
@@ -65,10 +65,8 @@ export class Service extends Resource<IServiceOptions> {
             [this.getName(NamePostFix.SERVICE)]: {
                 "Type": "AWS::ECS::Service",
                 "DeletionPolicy": "Delete",
-                ...(this.cluster.getOptions().disableELB ? {} : {
-                    "DependsOn": this.protocols.map((protocol: Protocol): string => {
-                        return protocol.getName(NamePostFix.LOAD_BALANCER_LISTENER_RULE)
-                    }),
+                ...(this.cluster.getOptions().disableELB || this.options.disableELB ? {} : {
+                    "DependsOn": this.getListenerRules(),
                 }),
                 "Properties": {
                     "ServiceName": this.options.name,
@@ -76,7 +74,7 @@ export class Service extends Resource<IServiceOptions> {
                         "Ref": this.cluster.getName(NamePostFix.CLUSTER)
                     },
                     ...(this.getTags() ? { "Tags": this.getTags() } : {}),
-                    "EnableECSManagedTags": true,
+                    ...(this.hasTags() ? { "EnableECSManagedTags": true } : {}),
                     "LaunchType": "FARGATE",
                     "DeploymentConfiguration": {
                         "MaximumPercent": 200,
@@ -85,7 +83,8 @@ export class Service extends Resource<IServiceOptions> {
                     "DesiredCount": this.options.desiredCount ? this.options.desiredCount : 1,
                     "NetworkConfiguration": {
                         "AwsvpcConfiguration": {
-                            "AssignPublicIp": (this.cluster.isPublic() ? "ENABLED" : "DISABLED"),
+                            /* cluster can be public, but the service is not binded to ELB, don't assign public IP*/
+                            "AssignPublicIp": (this.cluster.isPublic() && !this.options.disableELB ? "ENABLED" : "DISABLED"),
                             "SecurityGroups": this.getSecurityGroups(),
                             "Subnets": this.cluster.getVPC().getSubnets()
                         }
@@ -93,11 +92,11 @@ export class Service extends Resource<IServiceOptions> {
                     "TaskDefinition": {
                         "Ref": this.getName(NamePostFix.TASK_DEFINITION)
                     },
-                    ...(this.cluster.getOptions().disableELB ? {} : {
+                    ...(this.cluster.getOptions().disableELB || this.options.disableELB ? {} : {
                         "LoadBalancers": [
                             {
                                 "ContainerName": this.getName(NamePostFix.CONTAINER_NAME),
-                                "ContainerPort": this.port,
+                                "ContainerPort": this.ports[0],
                                 "TargetGroupArn": {
                                     "Ref": this.getName(NamePostFix.TARGET_GROUP)
                                 }
@@ -134,11 +133,9 @@ export class Service extends Resource<IServiceOptions> {
                             "Memory": this.options.memory,
                             "Image": this.options.image || `${this.options.imageRepository}:${this.options.name}-${this.options.imageTag}`,
                             ...(this.options.entryPoint ? { "EntryPoint": this.options.entryPoint } : {}),
-                            "PortMappings": [
-                                {
-                                    "ContainerPort": this.port
-                                }
-                            ],
+                            ...(this.cluster.getOptions().disableELB || this.options.disableELB 
+                                    ? {} : {"PortMappings": [{ "ContainerPort": this.ports[0] }]}
+                                ),
                             "LogConfiguration": {
                                 "LogDriver": "awslogs",
                                 "Options": {
@@ -163,7 +160,7 @@ export class Service extends Resource<IServiceOptions> {
     }
 
     private generateTargetGroup(): any {
-        if (this.cluster.getOptions().disableELB) return {};
+        if (this.cluster.getOptions().disableELB || this.options.disableELB) return {};
         return {
             [this.getName(NamePostFix.TARGET_GROUP)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
@@ -177,7 +174,7 @@ export class Service extends Resource<IServiceOptions> {
                     "HealthyThresholdCount": 2,
                     "TargetType": "ip",
                     "Name": this.getName(NamePostFix.TARGET_GROUP),
-                    "Port": this.port,
+                    "Port": this.ports[0],
                     "Protocol": "HTTP",
                     "UnhealthyThresholdCount": 2,
                     "VpcId": this.cluster.getVPC().getRefName()
@@ -198,6 +195,7 @@ export class Service extends Resource<IServiceOptions> {
                 "Type": "AWS::IAM::Role",
                 "DeletionPolicy": "Delete",
                 "Properties": {
+                    "RoleName": Service.EXECUTION_ROLE_NAME,
                     ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                     "AssumeRolePolicyDocument": {
                         "Statement": [
@@ -268,6 +266,16 @@ export class Service extends Resource<IServiceOptions> {
         if (this.cluster.getVPC().useExistingVPC()) {
             return this.cluster.getVPC().getSecurityGroups();  
         } return [{ "Ref": this.cluster.getName(NamePostFix.CONTAINER_SECURITY_GROUP) }];
+    }
+
+    private getListenerRules(): string[] {
+        const listenerRules = [];
+        this.protocols.forEach((protocol: Protocol): void => {
+            protocol.getListenerRulesName().forEach(element => {
+                listenerRules.push(element);
+            });
+        });
+        return listenerRules;
     }
 
     /* Auto scaling service -- this also could be moved to another class */

@@ -24,10 +24,9 @@ export class Service extends Resource<IServiceOptions> {
         //
         super(options, stage, safeResourceName, tags); 
         this.cluster = cluster;
-
-        this.protocols = this.options.protocols.map((serviceProtocolOptions: IServiceProtocolOptions): any => {
+        this.protocols = (this.cluster.getOptions().disableELB ? [] : this.options.protocols.map((serviceProtocolOptions: IServiceProtocolOptions): any => {
             return new Protocol(cluster, this, stage, serviceProtocolOptions, tags);
-        });
+        }));
 
         this.logGroupName = `serverless-fargate-${options.name}-${stage}-${uuid()}`;
 
@@ -66,8 +65,10 @@ export class Service extends Resource<IServiceOptions> {
             [this.getName(NamePostFix.SERVICE)]: {
                 "Type": "AWS::ECS::Service",
                 "DeletionPolicy": "Delete",
-                "DependsOn": this.protocols.map((protocol: Protocol): string => {
-                    return protocol.getName(NamePostFix.LOAD_BALANCER_LISTENER_RULE)
+                ...(this.cluster.getOptions().disableELB ? {} : {
+                    "DependsOn": this.protocols.map((protocol: Protocol): string => {
+                        return protocol.getName(NamePostFix.LOAD_BALANCER_LISTENER_RULE)
+                    }),
                 }),
                 "Properties": {
                     "ServiceName": this.options.name,
@@ -91,15 +92,17 @@ export class Service extends Resource<IServiceOptions> {
                     "TaskDefinition": {
                         "Ref": this.getName(NamePostFix.TASK_DEFINITION)
                     },
-                    "LoadBalancers": [
-                        {
-                            "ContainerName": this.getName(NamePostFix.CONTAINER_NAME),
-                            "ContainerPort": this.port,
-                            "TargetGroupArn": {
-                                "Ref": this.getName(NamePostFix.TARGET_GROUP)
+                    ...(this.cluster.getOptions().disableELB ? {} : {
+                        "LoadBalancers": [
+                            {
+                                "ContainerName": this.getName(NamePostFix.CONTAINER_NAME),
+                                "ContainerPort": this.port,
+                                "TargetGroupArn": {
+                                    "Ref": this.getName(NamePostFix.TARGET_GROUP)
+                                }
                             }
-                        }
-                    ]
+                        ]
+                    })
                 }
             },
         };
@@ -149,7 +152,7 @@ export class Service extends Resource<IServiceOptions> {
                         this.options.environment && {
                             "Environment": Object.keys(this.options.environment).map(name => ({
                                 "Name": name,
-                                "Value": String(this.options.environment[name]),
+                                "Value": this.options.environment[name],
                             }))
                         })
                     ]
@@ -159,6 +162,7 @@ export class Service extends Resource<IServiceOptions> {
     }
 
     private generateTargetGroup(): any {
+        if (this.cluster.getOptions().disableELB) return {};
         return {
             [this.getName(NamePostFix.TARGET_GROUP)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",

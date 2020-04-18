@@ -23,6 +23,7 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
       Customer: You
     };
     executionRoleArn?: string; // execution role for services, generated if not specified
+    disableELB?: boolean; //disable ELB creation and bindings, default to false. Usefull for long running processes
     vpc: {
         //if this options are specified it will create a VPC
         cidr: string;
@@ -93,6 +94,7 @@ custom:
     tags:
       customer: You
       owner: Me
+    disableELB: false
     services:
     - name: example-name
       cpu: 512

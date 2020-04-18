@@ -197,7 +197,7 @@ export class Service extends Resource<IServiceOptions> {
                 "Type": "AWS::IAM::Role",
                 "DeletionPolicy": "Delete",
                 "Properties": {
-                    "RoleName": Service.EXECUTION_ROLE_NAME,
+                    "RoleName": this.executionRole,
                     ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                     "AssumeRolePolicyDocument": {
                         "Statement": [

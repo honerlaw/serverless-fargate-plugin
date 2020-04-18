@@ -6,10 +6,10 @@ import * as uuid from 'uuid/v1';
 
 export class Service extends Resource<IServiceOptions> {
 
-    private static readonly EXECUTION_ROLE_NAME: string = "ECSServiceExecutionRole";
     private readonly logGroupName: string;
     public readonly ports: number[];
     private readonly cluster: Cluster;
+    private readonly executionRole: string;
     public readonly protocols: Protocol[];
 
     public constructor(stage: string, options: IServiceOptions, cluster: Cluster, tags?: object) {
@@ -24,6 +24,7 @@ export class Service extends Resource<IServiceOptions> {
         //
         super(options, stage, safeResourceName, tags); 
         this.cluster = cluster;
+        this.executionRole = `${cluster.serviceName}ECSServiceExecutionRole`;
         this.ports = [];
         this.protocols = (this.cluster.getOptions().disableELB || this.options.disableELB ? [] : this.options.protocols.map((serviceProtocolOptions: IServiceProtocolOptions, index): any => {
             //use specified port for the first protocol
@@ -192,7 +193,7 @@ export class Service extends Resource<IServiceOptions> {
      */
     private generateExecutionRole(): any {
         return {
-            [Service.EXECUTION_ROLE_NAME]: {
+            [this.executionRole]: {
                 "Type": "AWS::IAM::Role",
                 "DeletionPolicy": "Delete",
                 "Properties": {
@@ -259,7 +260,7 @@ export class Service extends Resource<IServiceOptions> {
             return executionRoleArn;
         }
         return {
-            "Ref": Service.EXECUTION_ROLE_NAME
+            "Ref": this.executionRole
         };
     }
 

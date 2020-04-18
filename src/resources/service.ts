@@ -31,7 +31,8 @@ export class Service extends Resource<IServiceOptions> {
             console.debug(`Serverless: fargate-plugin: Using port ${this.ports[index]} for service ${options.name} on cluster ${cluster.getName(NamePostFix.CLUSTER)} - protocol ${serviceProtocolOptions.protocol}`);
             return new Protocol(cluster, this, stage, serviceProtocolOptions, this.ports[index], tags);
         }));
-        this.logGroupName = `serverless-fargate-${options.name}-${stage}-${uuid()}`;
+        //we do not use UID on log group name because we want to persist logs from one deployment to another
+        this.logGroupName = `/aws/fargate/${this.cluster.serviceName}-${stage}/${options.name}`;
     }
 
     public generate(): any {

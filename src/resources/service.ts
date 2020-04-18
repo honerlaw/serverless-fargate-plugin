@@ -6,10 +6,10 @@ import * as uuid from 'uuid/v1';
 
 export class Service extends Resource<IServiceOptions> {
 
-    private static readonly EXECUTION_ROLE_NAME: string = "ECSServiceExecutionRole";
     private readonly logGroupName: string;
     public readonly ports: number[];
     private readonly cluster: Cluster;
+    private readonly executionRole: string;
     public readonly protocols: Protocol[];
 
     public constructor(stage: string, options: IServiceOptions, cluster: Cluster, tags?: object) {
@@ -24,6 +24,7 @@ export class Service extends Resource<IServiceOptions> {
         //
         super(options, stage, safeResourceName, tags); 
         this.cluster = cluster;
+        this.executionRole = `${cluster.serviceName}ECSServiceExecutionRole`;
         this.ports = [];
         this.protocols = (this.cluster.getOptions().disableELB || this.options.disableELB ? [] : this.options.protocols.map((serviceProtocolOptions: IServiceProtocolOptions, index): any => {
             //use specified port for the first protocol
@@ -31,7 +32,8 @@ export class Service extends Resource<IServiceOptions> {
             console.debug(`Serverless: fargate-plugin: Using port ${this.ports[index]} for service ${options.name} on cluster ${cluster.getName(NamePostFix.CLUSTER)} - protocol ${serviceProtocolOptions.protocol}`);
             return new Protocol(cluster, this, stage, serviceProtocolOptions, this.ports[index], tags);
         }));
-        this.logGroupName = `serverless-fargate-${options.name}-${stage}-${uuid()}`;
+        //we do not use UID on log group name because we want to persist logs from one deployment to another
+        this.logGroupName = `/aws/fargate/${this.cluster.serviceName}-${stage}/${options.name}`;
     }
 
     public generate(): any {
@@ -190,11 +192,11 @@ export class Service extends Resource<IServiceOptions> {
      */
     private generateExecutionRole(): any {
         return {
-            [Service.EXECUTION_ROLE_NAME]: {
+            [this.executionRole]: {
                 "Type": "AWS::IAM::Role",
                 "DeletionPolicy": "Delete",
                 "Properties": {
-                    "RoleName": Service.EXECUTION_ROLE_NAME,
+                    "RoleName": this.executionRole,
                     ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                     "AssumeRolePolicyDocument": {
                         "Statement": [
@@ -257,7 +259,7 @@ export class Service extends Resource<IServiceOptions> {
             return executionRoleArn;
         }
         return {
-            "Ref": Service.EXECUTION_ROLE_NAME
+            "Ref": this.executionRole
         };
     }
 

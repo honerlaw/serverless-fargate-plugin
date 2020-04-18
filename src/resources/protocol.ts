@@ -78,7 +78,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
             rules.forEach((p, index) => {
                 _retRules = {
                     ..._retRules,
-                    ...this.generateListenerRule(p.path, index, p.method)
+                    ...this.generateListenerRule((p.path || p), index, p.method)
                 };
             });
             return _retRules;

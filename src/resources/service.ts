@@ -83,8 +83,7 @@ export class Service extends Resource<IServiceOptions> {
                     "DesiredCount": this.options.desiredCount ? this.options.desiredCount : 1,
                     "NetworkConfiguration": {
                         "AwsvpcConfiguration": {
-                            /* cluster can be public, but the service is not binded to ELB, don't assign public IP*/
-                            "AssignPublicIp": (this.cluster.isPublic() && !this.options.disableELB ? "ENABLED" : "DISABLED"),
+                            "AssignPublicIp": (this.cluster.isPublic() ? "ENABLED" : "DISABLED"),
                             "SecurityGroups": this.getSecurityGroups(),
                             "Subnets": this.cluster.getVPC().getSubnets()
                         }

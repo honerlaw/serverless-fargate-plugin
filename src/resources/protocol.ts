@@ -121,9 +121,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                     "ListenerArn": {
                         "Ref": this.cluster.loadBalancer.getName(NamePostFix.LOAD_BALANCER_LISTENER) + this.port
                     },
-                    // increase priority if have more than one handler -- todo: find a way to follow user dictated
-                    // priority while not reusing priority for the same service but different rules.
-                    "Priority": (this.service.getOptions().priority ? this.service.getOptions().priority : 1) + index
+                    "Priority": this.cluster.getServiceListenerPriority(this.service, this)
                 }
             }
         }

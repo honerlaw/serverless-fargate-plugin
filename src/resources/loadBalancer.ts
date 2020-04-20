@@ -149,7 +149,7 @@ export class LoadBalancer extends Resource<IClusterOptions> {
                         "Port": listener.proto.port,
                         "Protocol": listener.proto.getOptions().protocol,
                         ...(listener.proto.getOptions().protocol == "HTTPS" ? {
-                            "Certificates": listener.proto.getOptions().certificateArn.map((certificateArn: string): any => ({
+                            "Certificates": listener.proto.getOptions().certificateArns.map((certificateArn: string): any => ({
                                 "CertificateArn": certificateArn
                             }))} : {}
                         )

@@ -89,13 +89,12 @@ export class LoadBalancer extends Resource<IClusterOptions> {
                         "SecurityGroupIngress": [
                             {
                                 "CidrIp": "0.0.0.0/0",
+                                //Todo: Can we improve security here?
                                 // ...(service.port ? {
                                 //     "IpProtocol": 'tcp',
                                 //     "toPort": service.port,
                                 //     "fromPort": service.port
-                                // } : {
-                                    
-                                // })
+                                // } : { })
                                 "IpProtocol": -1
                             }
                         ]

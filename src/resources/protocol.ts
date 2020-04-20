@@ -87,13 +87,14 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
         }
     }
     private generateListenerRule(path: string, index: number, method?: string): any {
+        const usingAuthorizer: boolean = !!(this.options.protocol == 'HTTPS' && this.options.authorizer);
         return {
             [`${this.getName(NamePostFix.LOAD_BALANCER_LISTENER_RULE)}${index}`]: {
                 "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
                 "DeletionPolicy": "Delete",
                 "Properties": {
                     "Actions": [
-                        ...(this.options.protocol == 'HTTPS' && this.options.authorizer ? [{
+                        ...(usingAuthorizer ? [{
                             "AuthenticateCognitoConfig": {
                                 "UserPoolArn": this.options.authorizer.poolArn,
                                 "UserPoolClientId": this.options.authorizer.clientId,
@@ -107,7 +108,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                                 "Ref": this.service.getName(NamePostFix.TARGET_GROUP)
                             },
                             "Type": "forward",
-                            ...(this.options.protocol == 'HTTPS' && this.options.authorizer ? {"Order": 2} : {})
+                            ...(usingAuthorizer ? {"Order": 2} : {})
                         }
                     ],
                     "Conditions": [
@@ -118,7 +119,14 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                         ...(method && method != '*' && method != 'ANY' ? [{
                             "Field": "http-request-method",
                             "HttpRequestMethodConfig": { "Values": [method] }
-                        }] : [{}])
+                        }] : []),
+                        ...(usingAuthorizer ? [{
+                            "Field": "http-header",
+                            "HttpHeaderConfig": {
+                                "HttpHeaderName": "authorization",
+                                "Values": [ "*" ]
+                            }
+                        }] : [])
                     ],
                     "ListenerArn": {
                         "Ref": this.cluster.loadBalancer.getName(NamePostFix.LOAD_BALANCER_LISTENER) + this.port

@@ -162,6 +162,8 @@ export class Service extends Resource<IServiceOptions> {
 
     private generateTargetGroup(): any {
         if (this.cluster.getOptions().disableELB || this.options.disableELB) return {};
+        //assume one protocol is available?
+        const proto = (this.options.healthCheckProtocol || this.options.protocols[0].protocol || "HTTP");
         return {
             [this.getName(NamePostFix.TARGET_GROUP)]: {
                 "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
@@ -170,13 +172,13 @@ export class Service extends Resource<IServiceOptions> {
                     ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                     "HealthCheckIntervalSeconds": this.options.healthCheckInterval ? this.options.healthCheckInterval : 6,
                     "HealthCheckPath": this.options.healthCheckUri ? this.options.healthCheckUri : "/",
-                    "HealthCheckProtocol": this.options.healthCheckProtocol ? this.options.healthCheckProtocol : "HTTP",
+                    "HealthCheckProtocol": proto,
                     "HealthCheckTimeoutSeconds": 5,
                     "HealthyThresholdCount": 2,
                     "TargetType": "ip",
                     "Name": this.getName(NamePostFix.TARGET_GROUP),
                     "Port": this.ports[0],
-                    "Protocol": "HTTP",
+                    "Protocol": proto,
                     "UnhealthyThresholdCount": 2,
                     "VpcId": this.cluster.getVPC().getRefName()
                 }

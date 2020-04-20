@@ -92,12 +92,22 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                 "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
                 "DeletionPolicy": "Delete",
                 "Properties": {
-                    "Actions": [{
-                        "TargetGroupArn": {
-                            "Ref": this.service.getName(NamePostFix.TARGET_GROUP)
-                        },
-                        "Type": "forward"
-                    }],
+                    "Actions": [
+                        ...(this.options.protocol == 'HTTPS' && this.options.authorizer ? [{
+                            "AuthenticateCognitoConfig": {
+                                "UserPoolArn": this.options.authorizer.poolArn,
+                                "UserPoolClientId": this.options.authorizer.clientId,
+                                "UserPoolDomain": this.options.authorizer.poolDomain
+                            },
+                            "Type": "authenticate-cognito"
+                        }] : [{}]),
+                        {
+                            "TargetGroupArn": {
+                                "Ref": this.service.getName(NamePostFix.TARGET_GROUP)
+                            },
+                            "Type": "forward"
+                        }
+                    ],
                     "Conditions": [
                         {
                             "Field": "path-pattern",

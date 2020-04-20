@@ -11,6 +11,11 @@ export interface IVPCOptions {
 export interface IServiceProtocolOptions {
     protocol: "HTTP" | "HTTPS";
     certificateArns?: string[]; // needed for https
+    authorizer?: {
+        poolArn: string;
+        clientId: string;
+        poolDomain: string;
+    }; //available on HTTPS only
 }
 
 enum AutoScalingMetricType {

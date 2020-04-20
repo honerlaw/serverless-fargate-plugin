@@ -48,6 +48,11 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
         protocols: Array<{
             protocol: "HTTP" | "HTTPS";
             certificateArns?: string[]; // needed for https
+            authorizer?: {
+              poolArn: string;
+              clientId: string;
+              poolDomain: string;
+            }; //available on HTTPS only
         }>;
         autoScale: {
               min?: number; //default to 1
@@ -118,6 +123,7 @@ custom:
       - start
       environment:
         PRODUCTION: true
+        ECS_ENABLE_CONTAINER_METADATA: true #https://stackoverflow.com/questions/48819809/how-to-get-task-id-from-within-ecs-container
       protocols:
       - protocol: HTTP
       - protocol: HTTPS

@@ -99,13 +99,15 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                                 "UserPoolClientId": this.options.authorizer.clientId,
                                 "UserPoolDomain": this.options.authorizer.poolDomain
                             },
-                            "Type": "authenticate-cognito"
+                            "Type": "authenticate-cognito",
+                            "Order": 1
                         }] : []),
                         {
                             "TargetGroupArn": {
                                 "Ref": this.service.getName(NamePostFix.TARGET_GROUP)
                             },
-                            "Type": "forward"
+                            "Type": "forward",
+                            ...(this.options.protocol == 'HTTPS' && this.options.authorizer ? {"Order": 2} : {})
                         }
                     ],
                     "Conditions": [

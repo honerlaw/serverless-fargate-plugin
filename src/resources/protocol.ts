@@ -100,7 +100,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                                 "UserPoolDomain": this.options.authorizer.poolDomain
                             },
                             "Type": "authenticate-cognito"
-                        }] : [{}]),
+                        }] : []),
                         {
                             "TargetGroupArn": {
                                 "Ref": this.service.getName(NamePostFix.TARGET_GROUP)

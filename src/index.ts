@@ -19,7 +19,8 @@ class ServerlessFargatePlugin {
         const service: any = this.serverless.service;
         const options: IClusterOptions[] = service.custom.fargate;
         const stage: string = service.provider ? service.provider.stage : service.stage;
-        const serviceName: string = service.service;
+        const provider = this.serverless.getProvider('aws');
+        const serviceName: string = provider.naming.getNormalizedFunctionName(service.service);
         
         //No cluster section specified, don't process
         if (!options || !options.length) {

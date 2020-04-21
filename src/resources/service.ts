@@ -176,9 +176,9 @@ export class Service extends Resource<IServiceOptions> {
                     "HealthCheckTimeoutSeconds": 5,
                     "HealthyThresholdCount": 2,
                     "TargetType": "ip",
-                    "Name": this.getName(NamePostFix.TARGET_GROUP),
+                    // "Name": this.getName(NamePostFix.TARGET_GROUP), -- should not be set - allow replacement
                     "Port": this.ports[0],
-                    "Protocol": proto,
+                    "Protocol": "HTTP",
                     "UnhealthyThresholdCount": 2,
                     "VpcId": this.cluster.getVPC().getRefName()
                 }

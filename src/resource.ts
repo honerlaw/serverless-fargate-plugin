@@ -1,13 +1,13 @@
 export enum NamePostFix {
     CLUSTER = "Cluster",
-    CONTAINER_SECURITY_GROUP = "ContainerSecurityGroup",
+    CONTAINER_SECURITY_GROUP = "ContainerSecGroup",
     CONTAINER_NAME = "ContainerName",
-    LOAD_BALANCER = "LoadBalancer",
-    LOAD_BALANCER_SECURITY_GROUP = "LoadBalancerSecurityGroup",
-    LOAD_BALANCER_LISTENER = "LoadBalancerListener",
-    LOAD_BALANCER_LISTENER_RULE = "LoadBalancerListenerRule",
-    SECURITY_GROUP_INGRESS_ALB = "SecurityGroupIngressAlb",
-    SECURITY_GROUP_INGRESS_SELF = "SecurityGroupIngressSelf",
+    LOAD_BALANCER = "ALB",
+    LOAD_BALANCER_SECURITY_GROUP = "ALBSecGroup",
+    LOAD_BALANCER_LISTENER = "ALBListener",
+    LOAD_BALANCER_LISTENER_RULE = "ALBListenerRule",
+    SECURITY_GROUP_INGRESS_ALB = "ALBSecGroupIngress",
+    SECURITY_GROUP_INGRESS_SELF = "SecGroupIngressSelf",
     LOG_GROUP = "LogGroup",
 
     // VPC specific
@@ -60,10 +60,11 @@ export abstract class Resource<T> {
     public abstract getOutputs(): any;
 
     public getName(namePostFix: NamePostFix): string {
+        //Use max length 28 to allow appending of ports and protocols   
         if (this.namePrefix) {
-            return (this.namePrefix + namePostFix.toString()).substr(0,32);
+            return (this.namePrefix + namePostFix + this.stage).substr(0, 28);
         }
-        return (namePostFix + this.stage).substr(0, 32);
+        return (namePostFix + this.stage).substr(0, 28);
     }
 
     public getOptions(): T {

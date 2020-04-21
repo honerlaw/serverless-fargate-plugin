@@ -10,7 +10,7 @@ export class LoadBalancer extends Resource<IClusterOptions> {
     private readonly cluster: Cluster;
 
     public constructor(stage: string, options: IClusterOptions, cluster: Cluster, tags?: object) {
-        super(options, stage, `${cluster.serviceName}${options.clusterName}`, tags);
+        super(options, stage, cluster.getNamePrefix(), tags);
         this.cluster = cluster;
     }
 
@@ -59,7 +59,7 @@ export class LoadBalancer extends Resource<IClusterOptions> {
     }
 
     private getSecurityGroupNameByService(service: Service): string {
-        return `${this.getName(NamePostFix.LOAD_BALANCER_SECURITY_GROUP)}${service.getName(NamePostFix.SERVICE)}`;
+        return `${this.getName(NamePostFix.LOAD_BALANCER_SECURITY_GROUP)}${service.getOptions().name}`;
     }
     
     private getServicesSecurityGroups(): object {
@@ -100,7 +100,7 @@ export class LoadBalancer extends Resource<IClusterOptions> {
                         ]
                     }
                 },
-                [ELBServiceSecGroup + this.getName(NamePostFix.SECURITY_GROUP_INGRESS_ALB)]: {
+                [ELBServiceSecGroup + NamePostFix.SECURITY_GROUP_INGRESS_ALB]: {
                     "Type": "AWS::EC2::SecurityGroupIngress",
                     "DeletionPolicy": "Delete",
                     "Properties": {

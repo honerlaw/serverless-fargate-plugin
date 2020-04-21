@@ -14,7 +14,7 @@ export class Service extends Resource<IServiceOptions> {
 
     public constructor(stage: string, options: IServiceOptions, cluster: Cluster, tags?: object) {
         // camelcase a default name
-        const safeResourceName = options.name
+        const safeResourceName = cluster.getNamePrefix() + options.name
             .toLowerCase() // lowercase everything
             .replace(/[^A-Za-z0-9]/g, ' ') // replace non alphanumeric with soaces
             .split(' ') // split on those spaces
@@ -24,7 +24,7 @@ export class Service extends Resource<IServiceOptions> {
         //
         super(options, stage, safeResourceName, tags); 
         this.cluster = cluster;
-        this.executionRole = `${cluster.serviceName}ECSServiceExecutionRole`;
+        this.executionRole = `${cluster.getNamePrefix()}ECSServiceExecutionRole`;
         this.ports = [];
         this.protocols = (this.cluster.getOptions().disableELB || this.options.disableELB ? [] : this.options.protocols.map((serviceProtocolOptions: IServiceProtocolOptions, index): any => {
             //use specified port for the first protocol
@@ -33,7 +33,7 @@ export class Service extends Resource<IServiceOptions> {
             return new Protocol(cluster, this, stage, serviceProtocolOptions, this.ports[index], tags);
         }));
         //we do not use UID on log group name because we want to persist logs from one deployment to another
-        this.logGroupName = `/aws/fargate/${this.cluster.serviceName}-${stage}/${options.name}`;
+        this.logGroupName = `/aws/fargate/${this.cluster.getNamePrefix()}/${options.name}`;
     }
 
     public generate(): any {
@@ -71,7 +71,7 @@ export class Service extends Resource<IServiceOptions> {
                     "DependsOn": this.getListenerRules(),
                 }),
                 "Properties": {
-                    "ServiceName": this.options.name,
+                    "ServiceName": this.getName(NamePostFix.SERVICE),
                     "Cluster": {
                         "Ref": this.cluster.getName(NamePostFix.CLUSTER)
                     },
@@ -116,7 +116,7 @@ export class Service extends Resource<IServiceOptions> {
                 "DeletionPolicy": "Delete",
                 "Properties": {
                     ...(this.getTags() ? { "Tags": this.getTags() } : {}),
-                    "Family": `${this.options.name}-${this.stage}`,
+                    "Family": `${this.getName(null)}`,
                     "Cpu": this.options.cpu,
                     "Memory": this.options.memory,
                     "NetworkMode": "awsvpc",
@@ -144,7 +144,7 @@ export class Service extends Resource<IServiceOptions> {
                                     "awslogs-region": {
                                         "Ref": "AWS::Region"
                                     },
-                                    "awslogs-stream-prefix": this.options.name
+                                    "awslogs-stream-prefix": this.getName(null)
                                 }
                             }
                         },

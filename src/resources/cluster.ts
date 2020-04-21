@@ -10,7 +10,7 @@ export class Cluster extends Resource<IClusterOptions> {
     private readonly vpc: VPC;
     public readonly services: Service[];
     public readonly loadBalancer: LoadBalancer;
-    public readonly serviceName: string;
+    private readonly serviceName: string;
 
     public constructor(stage: string, options: IClusterOptions, vpc: VPC, serviceName: string, tags?: object) {
         super(options, stage, `${serviceName}${options.clusterName}`, tags);

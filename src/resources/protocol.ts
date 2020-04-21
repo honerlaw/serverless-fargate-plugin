@@ -28,10 +28,10 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
     public getOutputs(): any {
         if (this.cluster.getOptions().disableELB || this.service.getOptions().disableELB) return {};
         return {
-            [this.cluster.getName(NamePostFix.CLUSTER) + this.service.getName(NamePostFix.SERVICE) + this.options.protocol]: {
+            [this.service.getName(NamePostFix.SERVICE) + this.options.protocol]: {
                 "Description": "Elastic load balancer service endpoint",
                 "Export": {
-                    "Name": this.cluster.getName(NamePostFix.CLUSTER) + this.service.getName(NamePostFix.SERVICE) + this.options.protocol
+                    "Name": this.service.getName(NamePostFix.SERVICE) + this.options.protocol
                 },
                 "Value": {
                     "Fn::Join": [

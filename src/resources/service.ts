@@ -116,7 +116,7 @@ export class Service extends Resource<IServiceOptions> {
                 "DeletionPolicy": "Delete",
                 "Properties": {
                     ...(this.getTags() ? { "Tags": this.getTags() } : {}),
-                    "Family": `${this.getName(null)}`,
+                    "Family": `${this.getName(NamePostFix.TASK_DEFINITION)}`,
                     "Cpu": this.options.cpu,
                     "Memory": this.options.memory,
                     "NetworkMode": "awsvpc",
@@ -144,7 +144,7 @@ export class Service extends Resource<IServiceOptions> {
                                     "awslogs-region": {
                                         "Ref": "AWS::Region"
                                     },
-                                    "awslogs-stream-prefix": this.getName(null)
+                                    "awslogs-stream-prefix": this.getName(NamePostFix.TASK_DEFINITION)
                                 }
                             }
                         },

@@ -100,7 +100,7 @@ export class LoadBalancer extends Resource<IClusterOptions> {
                         ]
                     }
                 },
-                ...(this.cluster.getVPC().useExistingVPC() &&
+                ...(!this.cluster.getVPC().useExistingVPC() &&
                     {
                         [ELBServiceSecGroup + NamePostFix.SECURITY_GROUP_INGRESS_ALB]: {
                             "Type": "AWS::EC2::SecurityGroupIngress",

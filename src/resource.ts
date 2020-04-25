@@ -60,11 +60,8 @@ export abstract class Resource<T> {
     public abstract getOutputs(): any;
 
     public getName(namePostFix: NamePostFix): string {
-        //Use max length 28 to allow appending of ports and protocols   
-        if (this.namePrefix) {
-            return (this.namePrefix + namePostFix + this.stage).substr(0, 28);
-        }
-        return (namePostFix + this.stage).substr(0, 28);
+        if (this.namePrefix) { return (this.namePrefix + namePostFix + this.stage); }
+        return (namePostFix + this.stage);
     }
 
     public getOptions(): T {

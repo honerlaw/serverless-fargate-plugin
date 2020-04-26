@@ -2,6 +2,6 @@ bin/
 node_modules/
 .idea/
 .serverless/
-resources/
+/resources/
 *.js
 *.js.map

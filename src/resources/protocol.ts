@@ -3,24 +3,22 @@ import {IServiceProtocolOptions} from "../options";
 import {Service} from "./service";
 import {Cluster} from "./cluster";
 
-const PORT_MAP: { [key: string]: number } = {
-    "HTTP": 80,
-    "HTTPS": 443
-};
-
 export class Protocol extends Resource<IServiceProtocolOptions> {
 
     private readonly cluster: Cluster;
     private readonly service: Service;
+    public readonly port: number;
 
     public constructor(cluster: Cluster,
                        service: Service,
                        stage: string,
                        options: IServiceProtocolOptions, 
+                       port: number,
                        tags?: object) {
         super(options, stage, service.getNamePrefix(), tags);
         this.cluster = cluster;
         this.service = service;
+        this.port = port;
     }
 
     public getName(namePostFix: NamePostFix): string {
@@ -28,6 +26,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
     }
 
     public getOutputs(): any {
+        if (this.cluster.getOptions().disableELB || this.service.getOptions().disableELB) return {};
         return {
             [this.cluster.getName(NamePostFix.CLUSTER) + this.service.getName(NamePostFix.SERVICE) + this.options.protocol]: {
                 "Description": "Elastic load balancer service endpoint",
@@ -40,9 +39,9 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                         [
                             this.options.protocol.toLowerCase(),
                             "://",
-                            { "Fn::GetAtt": [this.cluster.getName(NamePostFix.LOAD_BALANCER), "DNSName"] },
+                            { "Fn::GetAtt": [this.cluster.loadBalancer.getName(NamePostFix.LOAD_BALANCER), "DNSName"] },
                             ":",
-                            this.service.port 
+                            this.port 
                         ]
                     ]
                 }
@@ -51,34 +50,45 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
     }
 
     public generate(): any {
+        if (this.cluster.getOptions().disableELB || this.service.getOptions().disableELB) return {};
         if (this.options.protocol === "HTTPS" && (!this.options.certificateArns || this.options.certificateArns.length === 0)) {
             throw new Error('Certificate ARN required for HTTPS');
         }
-
-        var def: any = {
-            [this.getName(NamePostFix.LOAD_BALANCER_LISTENER)]: {
-                "Type": "AWS::ElasticLoadBalancingV2::Listener",
-                "DeletionPolicy": "Delete",
-                "DependsOn": [
-                    this.cluster.getName(NamePostFix.LOAD_BALANCER)
-                ],
-                "Properties": {
-                    "DefaultActions": [
-                        {
-                            "TargetGroupArn": {
-                                "Ref": this.service.getName(NamePostFix.TARGET_GROUP)
-                            },
-                            "Type": "forward"
-                        }
-                    ],
-                    "LoadBalancerArn": {
-                        "Ref": this.cluster.getName(NamePostFix.LOAD_BALANCER)
-                    },
-                    "Port": this.service.port,
-                    "Protocol": this.options.protocol
-                }
-            },
-            [this.getName(NamePostFix.LOAD_BALANCER_LISTENER_RULE)]: {
+        return this.getListenerRules();
+    }
+    public getListenerRulesName(): string[] {
+        if (typeof this.service.getOptions().path === 'string') {
+            return [`${this.getName(NamePostFix.LOAD_BALANCER_LISTENER_RULE)}${0}`];
+        } else if (Array.isArray(this.service.getOptions().path)) {
+            const rules: any = this.service.getOptions().path;
+            return rules.map((p, index) => {
+                return `${this.getName(NamePostFix.LOAD_BALANCER_LISTENER_RULE)}${index}`;
+            });
+        } else {
+            return [`${this.getName(NamePostFix.LOAD_BALANCER_LISTENER_RULE)}${0}`];
+        }
+    }
+    protected getListenerRules(): any {
+        if (typeof this.service.getOptions().path === 'string') {
+            const path: any = this.service.getOptions().path;
+            return this.generateListenerRule(path, 0);
+        } else if (Array.isArray(this.service.getOptions().path)) {
+            const rules: any = this.service.getOptions().path;
+            let _retRules = {};
+            rules.forEach((p, index) => {
+                _retRules = {
+                    ..._retRules,
+                    ...this.generateListenerRule((p.path || p), index, p.method)
+                };
+            });
+            return _retRules;
+        } else {
+            return this.generateListenerRule('*', 0);
+        }
+    }
+    private generateListenerRule(path: string, index: number, method?: string): any {
+        return {
+            [`${this.getName(NamePostFix.LOAD_BALANCER_LISTENER_RULE)}${index}`]: {
                 "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
                 "DeletionPolicy": "Delete",
                 "Properties": {
@@ -91,25 +101,22 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                     "Conditions": [
                         {
                             "Field": "path-pattern",
-                            "Values": [this.service.getOptions().path ? this.service.getOptions().path : '*']
-                        }
+                            "Values": [path]
+                        },
+                        ...(method && method != '*' && method != 'ANY' ? [{
+                            "Field": "http-request-method",
+                            "HttpRequestMethodConfig": { "Values": [method] }
+                        }] : [{}])
                     ],
                     "ListenerArn": {
-                        "Ref": this.getName(NamePostFix.LOAD_BALANCER_LISTENER)
+                        "Ref": this.cluster.loadBalancer.getName(NamePostFix.LOAD_BALANCER_LISTENER) + this.port
                     },
-                    "Priority": this.service.getOptions().priority ? this.service.getOptions().priority : 1
+                    // increase priority if have more than one handler -- todo: find a way to follow user dictated
+                    // priority while not reusing priority for the same service but different rules.
+                    "Priority": (this.service.getOptions().priority ? this.service.getOptions().priority : 1) + index
                 }
             }
-        };
-
-        if (this.options.protocol === "HTTPS") {
-            def[this.getName(NamePostFix.LOAD_BALANCER_LISTENER)].Properties.Certificates = this.options
-                .certificateArns.map((certificateArn: string): any => ({
-                    "CertificateArn": certificateArn
-                }));
         }
-
-        return def;
     }
 
 }

@@ -52,15 +52,18 @@ export abstract class Resource<T> {
             }));
         } return null;
     }
+    public hasTags(): boolean { 
+        return (this.tags && Object.keys(this.tags).length > 0);
+    }
 
     public abstract generate(): any;
     public abstract getOutputs(): any;
 
     public getName(namePostFix: NamePostFix): string {
         if (this.namePrefix) {
-            return this.namePrefix + namePostFix.toString();
+            return (this.namePrefix + namePostFix.toString()).substr(0,32);
         }
-        return namePostFix + this.stage;
+        return (namePostFix + this.stage).substr(0, 32);
     }
 
     public getOptions(): T {

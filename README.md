@@ -23,6 +23,7 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
       Customer: You
     };
     executionRoleArn?: string; // execution role for services, generated if not specified
+    disableELB?: boolean; //disable ELB creation and bindings, default to false. Usefull for long running processes
     vpc: {
         //if this options are specified it will create a VPC
         cidr: string;
@@ -41,6 +42,7 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
         memory: number;
         public: boolean; //Will it be facing internet? This affects directly what security groups will be auto created
         port: number; // docker port (the port exposed on the docker image) - if not specified random port will be used - usefull for busy private subnets 
+        disableELB?: boolean; //useful for disabling ELB listeners on a cluster that has ELB and more tasks with ELB enabled
         entryPoint: string[]; // same as docker's entry point
         environment: { [key: string]: string }; // environment variables passed to docker container
         protocols: Array<{
@@ -60,7 +62,7 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
         imageRepository?: string; // image repository (used if image option is not provided)
         imageTag?: string; // image tag (used if image option is not provided)
         priority?: number; // priority for routing, defaults to 1
-        path?: string; // path the Load Balancer should send traffic to, defaults to '*'
+        path?: string | { path: string, method?: string }[]; // path the LB should send traffic to, defaults '*' (everything) - keyword 'ANY' is allowed on method
         desiredCount?: number; // number of tasks wanted by default - if not specified defaults to 1
         taskRoleArn?: string;
         healthCheckUri?: string; // defaults to "/"
@@ -93,6 +95,7 @@ custom:
     tags:
       customer: You
       owner: Me
+    disableELB: false
     services:
     - name: example-name
       cpu: 512

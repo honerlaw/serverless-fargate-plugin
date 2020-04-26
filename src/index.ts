@@ -19,6 +19,7 @@ class ServerlessFargatePlugin {
         const service: any = this.serverless.service;
         const options: IClusterOptions[] = service.custom.fargate;
         const stage: string = service.provider ? service.provider.stage : service.stage;
+        const serviceName: string = service.service;
         
         //No cluster section specified, don't process
         if (!options || !options.length) {
@@ -30,7 +31,7 @@ class ServerlessFargatePlugin {
             if (clusterOption && clusterOption.vpc) { //sanity check for empty objects
                 //multiple self-created VPCs will be a problem here, TODO: solve this with cluster prefix on resouces
                 const vpc: VPC = new VPC(stage, clusterOption.vpc, clusterOption.tags);
-                const cluster: Cluster = new Cluster(stage, clusterOption, vpc, clusterOption.tags);
+                const cluster: Cluster = new Cluster(stage, clusterOption, vpc, serviceName, clusterOption.tags);
 
                 // merge current cluster stuff into resources
                 Object.assign(
@@ -45,7 +46,7 @@ class ServerlessFargatePlugin {
                     vpc.getOutputs(),
                     cluster.getOutputs()
                 );
-            }
+            } else console.info('serverless-fargate-plugin: skipping cluster creation, missing informations (check required VPC).');
         }
     }
 

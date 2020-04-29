@@ -2,6 +2,12 @@
 
 Based on templates found here: https://github.com/nathanpeck/aws-cloudformation-fargate
 
+### Overall
+
+- ![npm](https://img.shields.io/npm/dy/@ikonintegration/serverless-fargate-plugin) ![npm](https://img.shields.io/npm/v/@ikonintegration/serverless-fargate-plugin) ![npm (tag)](https://img.shields.io/npm/v/@ikonintegration/serverless-fargate-plugin/latest)
+- ![GitHub commit activity](http://expoblvd2.redirectme.net:8555/github/commit-activity/m/ikon-integration/serverless-fargate-plugin)
+- ![GitHub last commit](http://expoblvd2.redirectme.net:8555/github/last-commit/ikon-integration/serverless-fargate-plugin)
+
 #### About
 This plugin will create a cluster, load balancer, vpc, subnets, and one or more services to associate with it. This plugin implements the following approaches:
 

@@ -4,7 +4,7 @@ Based on templates found here: https://github.com/nathanpeck/aws-cloudformation-
 
 ### Overall
 
-- ![npm](https://img.shields.io/npm/dy/@ikonintegration/serverless-fargate-plugin) ![npm](https://img.shields.io/npm/v/@ikonintegration/serverless-fargate-plugin) ![npm (tag)](https://img.shields.io/npm/v/@ikonintegration/serverless-fargate-plugin/latest)
+- ![npm](https://img.shields.io/npm/dy/@ikonintegration/serverless-fargate-plugin) ![npm](https://img.shields.io/npm/v/@ikonintegration/serverless-fargate-plugin) ![npm (tag)](https://img.shields.io/npm/v/@ikonintegration/serverless-fargate-plugin/latest) ![Libraries.io dependency status for latest release, scoped npm package](https://img.shields.io/librariesio/release/npm/@ikonintegration/serverless-fargate-plugin)
 - ![GitHub commit activity](http://expoblvd2.redirectme.net:8555/github/commit-activity/m/ikon-integration/serverless-fargate-plugin)
 - ![GitHub last commit](http://expoblvd2.redirectme.net:8555/github/last-commit/ikon-integration/serverless-fargate-plugin)
 

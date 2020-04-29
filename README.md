@@ -1,4 +1,4 @@
-# serverless-fargate-plugin
+# serverless-fargate-plugin ![Node.js Package](https://github.com/ikon-integration/serverless-fargate-plugin/workflows/Node.js%20Package/badge.svg)
 
 Based on templates found here: https://github.com/nathanpeck/aws-cloudformation-fargate
 

@@ -24,7 +24,7 @@ export class Service extends Resource<IServiceOptions> {
         //
         super(options, stage, safeResourceName, tags); 
         this.cluster = cluster;
-        this.executionRole = `${cluster.getNamePrefix()}ECSServiceExecutionRole`;
+        this.executionRole = `${cluster.getNamePrefix()}ECSServiceExecutionRole${this.stage}`;
         this.ports = [];
         this.protocols = (this.cluster.getOptions().disableELB || this.options.disableELB ? [] : this.options.protocols.map((serviceProtocolOptions: IServiceProtocolOptions, index): any => {
             //use specified port for the first protocol
@@ -33,7 +33,7 @@ export class Service extends Resource<IServiceOptions> {
             return new Protocol(cluster, this, stage, serviceProtocolOptions, this.ports[index], tags);
         }));
         //we do not use UID on log group name because we want to persist logs from one deployment to another
-        this.logGroupName = `/aws/fargate/${this.cluster.getNamePrefix()}/${options.name}`;
+        this.logGroupName = `/aws/fargate/${this.cluster.getNamePrefix()}/${this.stage}/${options.name}`;
     }
 
     public generate(): any {

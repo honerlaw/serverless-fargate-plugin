@@ -25,6 +25,7 @@ class ServerlessFargatePlugin {
         //No cluster section specified, don't process
         if (!options || !options.length) {
             console.error('serverless-fargate-plugin: Cluster will not be deployed due missing options.');
+            return;
         }
 
         //For each cluster

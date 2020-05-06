@@ -83,7 +83,6 @@ export class LoadBalancer extends Resource<IClusterOptions> {
                     "DeletionPolicy": "Delete",
                     "Properties": {
                         ...(this.getTags() ? { "Tags": this.getTags() } : {}),
-                        "GroupName": ELBServiceSecGroup,
                         "GroupDescription": `Access to the public facing load balancer - task ${service.getName(NamePostFix.SERVICE)}`,
                         "VpcId": this.cluster.getVPC().getRefName(),
                         "SecurityGroupIngress": [

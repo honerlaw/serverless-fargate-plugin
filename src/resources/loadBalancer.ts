@@ -54,10 +54,12 @@ export class LoadBalancer extends Resource<IClusterOptions> {
         //Check if need to append specified SGs
         if (this.cluster.getVPC().useExistingVPC()) {
             if (Array.isArray(this.cluster.getVPC().getSecurityGroups())) secGroups = secGroups.concat(this.cluster.getVPC().getSecurityGroups());
-            else secGroups.push(this.cluster.getVPC().getSecurityGroups());
-        } 
-        //
-        return secGroups;
+            else if (this.cluster.getVPC().getSecurityGroups()['Fn::Split']) { //handle case where split is specified but we need to make the split operation before concating
+                const split = this.cluster.getVPC().getSecurityGroups()['Fn::Split'];
+                const parts = split[1].split(split[0]);
+                secGroups = secGroups.concat(parts);
+            } else secGroups.push(this.cluster.getVPC().getSecurityGroups());
+        }  return secGroups;
     }
 
     private getSecurityGroupNameByService(service: Service): string {

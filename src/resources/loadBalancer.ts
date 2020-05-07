@@ -45,17 +45,19 @@ export class LoadBalancer extends Resource<IClusterOptions> {
 
     /* Security groups */
     private getELBSecurityGroupsRef(): any {;
+        let secGroups = [];
+        this.cluster.services.forEach((service: Service) => {
+            if (this.options.public && !service.getOptions().disableELB) {
+                secGroups.push({ "Ref": this.getSecurityGroupNameByService(service) });
+            }
+        });
+        //Check if need to append specified SGs
         if (this.cluster.getVPC().useExistingVPC()) {
-            return this.cluster.getVPC().getSecurityGroups()
-        } else {
-            let secGroups = [];
-            this.cluster.services.forEach((service: Service) => {
-                if (this.options.public && !service.getOptions().disableELB) {
-                    secGroups.push({ "Ref": this.getSecurityGroupNameByService(service) });
-                }
-            });
-            return secGroups;
-        }
+            if (Array.isArray(this.cluster.getVPC().getSecurityGroups())) secGroups = secGroups.concat(this.cluster.getVPC().getSecurityGroups());
+            else secGroups.push(this.cluster.getVPC().getSecurityGroups());
+        } 
+        //
+        return secGroups;
     }
 
     private getSecurityGroupNameByService(service: Service): string {

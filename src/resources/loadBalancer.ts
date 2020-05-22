@@ -29,7 +29,7 @@ export class LoadBalancer extends Resource<IClusterOptions> {
                         "LoadBalancerAttributes": [
                             {
                                 "Key": "idle_timeout.timeout_seconds",
-                                "Value": "30"
+                                "Value": this.options.timeout || 30
                             }
                         ],
                         "Subnets": this.cluster.getVPC().getSubnets(),

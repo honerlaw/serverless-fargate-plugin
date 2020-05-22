@@ -70,6 +70,7 @@ export interface IServiceOptions {
 export interface IClusterOptions {
     public: boolean;
     disableELB?: boolean;
+    timeout?: number; //ELB timeout, defaults to 30
     clusterName: string;
     executionRoleArn?: string; // role for services, generated if not specfied
     vpc: IVPCOptions;

@@ -144,7 +144,8 @@ export class Service extends Resource<IServiceOptions> {
                                     "awslogs-region": {
                                         "Ref": "AWS::Region"
                                     },
-                                    "awslogs-stream-prefix": this.getName(NamePostFix.TASK_DEFINITION)
+                                    "awslogs-stream-prefix": this.getName(NamePostFix.TASK_DEFINITION),
+                                    ...(this.options.logsMultilinePattern ? { 'awslogs-multiline-pattern': this.options.logsMultilinePattern } : {})
                                 }
                             }
                         },

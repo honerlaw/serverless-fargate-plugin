@@ -23,13 +23,14 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
 
 #### Options
 ```javascript
-{
+Array<{
     tags: {
       owner: Me
       Customer: You
     };
     executionRoleArn?: string; // execution role for services, generated if not specified
     disableELB?: boolean; //disable ELB creation and bindings, default to false. Usefull for long running processes
+    timeout?: number; //ELB timeout, defaults to 30
     vpc: {
         //if this options are specified it will create a VPC
         cidr: string;
@@ -79,8 +80,9 @@ If you would like to reference the VPC elsewhere (such as in the [serverless-aur
         healthCheckUri?: string; // defaults to "/"
         healthCheckProtocol?: string; // defaults to "HTTP"
         healthCheckInterval?: number // in seconds, defaults to 6 seconds
+        logsMultilinePattern?: string; //regex pattern to match multiline logs (useful for js objects for example)
     }>
-}
+}>
 ```
 
 #### Examples

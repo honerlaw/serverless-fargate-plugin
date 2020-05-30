@@ -11,7 +11,10 @@
   },
   "author": "Derek Honerlaw",
   "contributors": [
-    { "name": "Gabriel Pacheco", "email": "gabriel.wady@gmail.com" }
+    {
+      "name": "Gabriel Pacheco",
+      "email": "gabriel.wady@gmail.com"
+    }
   ],
   "license": "MIT",
   "devDependencies": {

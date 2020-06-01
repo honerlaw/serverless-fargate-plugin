@@ -52,6 +52,7 @@ export interface IServiceOptions {
     port?: number; // docker port (the port exposed on the docker image) - if not specified random port will be used - usefull for busy private subnets 
     entryPoint: string[]; //custom container entry point
     disableELB?: boolean; //useful for disabling ELB listeners on a cluster that has ELB and more tasks with ELB enabled
+    hostname?: string | string[]; //optional hostname for filter on ELB 
     environment: { [key: string]: string };
     protocols: IServiceProtocolOptions[];
     image?: string;
@@ -71,6 +72,7 @@ export interface IServiceOptions {
 export interface IClusterOptions {
     public: boolean;
     disableELB?: boolean;
+    elbListenerArn?: string;
     timeout?: number; //ELB timeout, defaults to 30
     clusterName: string;
     executionRoleArn?: string; // role for services, generated if not specfied

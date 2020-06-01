@@ -26,7 +26,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
     }
 
     public getOutputs(): any {
-        if (this.cluster.getOptions().disableELB || this.service.getOptions().disableELB) return {};
+        if (this.cluster.getOptions().disableELB || this.service.getOptions().disableELB || this.cluster.getOptions().elbListenerArn) return {};
         return {
             [this.service.getName(NamePostFix.SERVICE) + this.options.protocol]: {
                 "Description": "Elastic load balancer service endpoint",
@@ -126,12 +126,18 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                                 "HttpHeaderName": "authorization",
                                 "Values": [ "*" ]
                             }
+                        }] : []),
+                        ...(this.service.getOptions().hostname ? [{
+                            "Field": "host-header",
+                            "HostHeaderConfig": {
+                                "Values": (Array.isArray(this.service.getOptions().hostname) ? [this.service.getOptions().hostname] : this.service.getOptions().hostname)
+                            }
                         }] : [])
                     ],
                     "ListenerArn": {
-                        "Ref": this.cluster.loadBalancer.getName(NamePostFix.LOAD_BALANCER_LISTENER) + this.port
+                        "Ref": (this.cluster.getOptions().elbListenerArn || this.cluster.loadBalancer.getName(NamePostFix.LOAD_BALANCER_LISTENER) + this.port)
                     },
-                    "Priority": this.cluster.getServiceListenerPriority(this.service, this)
+                    "Priority": (this.cluster.getOptions().elbListenerArn ? this.service.getOptions().priority : this.cluster.getServiceListenerPriority(this.service, this))
                 }
             }
         }

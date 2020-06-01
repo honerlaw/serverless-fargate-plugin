@@ -19,7 +19,8 @@ export class LoadBalancer extends Resource<IClusterOptions> {
     public generate(): any {
         return Object.assign({
             ...(this.options.disableELB ? {} : {
-                [this.getName(NamePostFix.LOAD_BALANCER)]: {
+                ...(this.options.elbListenerArn ? {} : {
+                    [this.getName(NamePostFix.LOAD_BALANCER)]: {
                     "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
                     "DeletionPolicy": "Delete",
                     "Properties": {
@@ -35,9 +36,9 @@ export class LoadBalancer extends Resource<IClusterOptions> {
                         "Subnets": this.cluster.getVPC().getSubnets(),
                         "SecurityGroups": this.getELBSecurityGroupsRef()
                     },
-                },
+                    ...this.getListeners(),
+                }}),
                 ...this.getServicesSecurityGroups(),
-                ...this.getListeners(),
             }),
         });
     }

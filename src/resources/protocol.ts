@@ -134,9 +134,9 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                             }
                         }] : [])
                     ],
-                    "ListenerArn": {
-                        "Ref": (this.cluster.getOptions().elbListenerArn || this.cluster.loadBalancer.getName(NamePostFix.LOAD_BALANCER_LISTENER) + this.port)
-                    },
+                    "ListenerArn": (this.cluster.getOptions().elbListenerArn || {
+                        "Ref": this.cluster.loadBalancer.getName(NamePostFix.LOAD_BALANCER_LISTENER) + this.port
+                    }),
                     "Priority": (this.cluster.getOptions().elbListenerArn ? this.service.getOptions().priority : this.cluster.getServiceListenerPriority(this.service, this))
                 }
             }

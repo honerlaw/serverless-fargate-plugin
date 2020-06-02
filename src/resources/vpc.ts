@@ -17,9 +17,9 @@ export class VPC extends Resource<IVPCOptions> {
     }
 
     public useExistingVPC(): boolean {
-        return !!(this.options.vpcId && 
-                  this.options.securityGroupIds && 
-                  this.options.subnetIds);
+        return !!(this.options.vpcId && this.options.vpcId != 'null' && 
+                  this.options.securityGroupIds && (<string><unknown>this.options.securityGroupIds) != 'null' &&
+                  this.options.subnetIds && (<string><unknown>this.options.subnetIds) != 'null');
     }
 
     public getRefName(): any {

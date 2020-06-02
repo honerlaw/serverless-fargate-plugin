@@ -130,7 +130,7 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                         ...(this.service.getOptions().hostname ? [{
                             "Field": "host-header",
                             "HostHeaderConfig": {
-                                "Values": (Array.isArray(this.service.getOptions().hostname) ? [this.service.getOptions().hostname] : this.service.getOptions().hostname)
+                                "Values": (Array.isArray(this.service.getOptions().hostname) ? this.service.getOptions().hostname : [this.service.getOptions().hostname])
                             }
                         }] : [])
                     ],

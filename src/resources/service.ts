@@ -174,13 +174,13 @@ export class Service extends Resource<IServiceOptions> {
                     "HealthCheckIntervalSeconds": this.options.healthCheckInterval ? this.options.healthCheckInterval : 6,
                     "HealthCheckPath": this.options.healthCheckUri ? this.options.healthCheckUri : "/",
                     "HealthCheckProtocol": proto,
-                    "HealthCheckTimeoutSeconds": 5,
-                    "HealthyThresholdCount": 2,
+                    "HealthCheckTimeoutSeconds": this.options.healthCheckTimeout ? this.options.healthCheckTimeout : 5,
+                    "HealthyThresholdCount": this.options.healthCheckHealthyCount ? this.options.healthCheckHealthyCount : 2,
                     "TargetType": "ip",
                     // "Name": this.getName(NamePostFix.TARGET_GROUP), -- should not be set - allow replacement
                     "Port": this.ports[0],
                     "Protocol": "HTTP",
-                    "UnhealthyThresholdCount": 2,
+                    "UnhealthyThresholdCount": this.options.healthCheckUnhealthyCount ? this.options.healthCheckUnhealthyCount : 2,,
                     "VpcId": this.cluster.getVPC().getRefName()
                 }
             }

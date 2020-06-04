@@ -66,6 +66,9 @@ export interface IServiceOptions {
     healthCheckUri?: string; // defaults to "/"
     healthCheckProtocol?: string; // defaults to "HTTP"
     healthCheckInterval?: number // in seconds, defaults to 6 seconds
+    healthCheckTimeout?: number; // in seconds, defaults to 5 seconds
+    healthCheckHealthyCount?: number; // defaults to 2
+    healthCheckUnhealthyCount?: number; // defaults to 2
     logsMultilinePattern?: string; //regex pattern to match multiline logs (useful for js objects for example)
 }
 

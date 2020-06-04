@@ -180,7 +180,7 @@ export class Service extends Resource<IServiceOptions> {
                     // "Name": this.getName(NamePostFix.TARGET_GROUP), -- should not be set - allow replacement
                     "Port": this.ports[0],
                     "Protocol": "HTTP",
-                    "UnhealthyThresholdCount": this.options.healthCheckUnhealthyCount ? this.options.healthCheckUnhealthyCount : 2,,
+                    "UnhealthyThresholdCount": this.options.healthCheckUnhealthyCount ? this.options.healthCheckUnhealthyCount : 2,
                     "VpcId": this.cluster.getVPC().getRefName()
                 }
             }

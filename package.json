@@ -1,6 +1,6 @@
 {
   "name": "@ikonintegration/serverless-fargate-plugin",
-  "version": "1.7.6",
+  "version": "1.7.8",
   "description": "A simple plugin to stand up an ECS FARGATE Cluster with a couple of services.",
   "main": "index.js",
   "homepage": "https://github.com/honerlaw/serverless-fargate-plugin/issues",

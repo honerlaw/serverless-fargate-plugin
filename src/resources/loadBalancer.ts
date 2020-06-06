@@ -21,23 +21,24 @@ export class LoadBalancer extends Resource<IClusterOptions> {
             ...(this.options.disableELB ? {} : {
                 ...(this.options.elbListenerArn ? {} : {
                     [this.getName(NamePostFix.LOAD_BALANCER)]: {
-                    "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
-                    "DeletionPolicy": "Delete",
-                    "Properties": {
-                        "Name": this.getName(NamePostFix.LOAD_BALANCER),
-                        ...(this.getTags() ? { "Tags": this.getTags() } : {}),
-                        "Scheme": (this.cluster.isPublic() ? "internet-facing" : "internal"),
-                        "LoadBalancerAttributes": [
-                            {
-                                "Key": "idle_timeout.timeout_seconds",
-                                "Value": (this.options.timeout || 30)
-                            }
-                        ],
-                        "Subnets": this.cluster.getVPC().getSubnets(),
-                        "SecurityGroups": this.getELBSecurityGroupsRef()
+                        "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+                        "DeletionPolicy": "Delete",
+                        "Properties": {
+                            "Name": this.getName(NamePostFix.LOAD_BALANCER),
+                            ...(this.getTags() ? { "Tags": this.getTags() } : {}),
+                            "Scheme": (this.cluster.isPublic() ? "internet-facing" : "internal"),
+                            "LoadBalancerAttributes": [
+                                {
+                                    "Key": "idle_timeout.timeout_seconds",
+                                    "Value": (this.options.timeout || 30)
+                                }
+                            ],
+                            "Subnets": this.cluster.getVPC().getSubnets(),
+                            "SecurityGroups": this.getELBSecurityGroupsRef()
+                        },
                     },
-                    ...this.getListeners(),
-                }}),
+                    ...this.getListeners()
+                }),
                 ...this.getServicesSecurityGroups(),
             }),
         });

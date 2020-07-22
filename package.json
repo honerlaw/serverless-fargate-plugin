@@ -1,6 +1,6 @@
 {
   "name": "@ikonintegration/serverless-fargate-plugin",
-  "version": "1.7.8",
+  "version": "1.7.9",
   "description": "A simple plugin to stand up an ECS FARGATE Cluster with a couple of services.",
   "main": "index.js",
   "homepage": "https://github.com/honerlaw/serverless-fargate-plugin/issues",
@@ -18,9 +18,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "typescript": "^3.1.6"
+    "typescript": "^3.9.7"
   },
-  "dependencies": {
-    "uuid": "^3.4.0"
-  }
+  "dependencies": {}
 }

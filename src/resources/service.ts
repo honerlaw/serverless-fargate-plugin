@@ -2,7 +2,6 @@ import {IServiceOptions, IServiceProtocolOptions} from "../options";
 import {Cluster} from "./cluster";
 import {NamePostFix, Resource} from "../resource";
 import {Protocol} from "./protocol";
-import * as uuid from 'uuid/v1';
 
 export class Service extends Resource<IServiceOptions> {
 

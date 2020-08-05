@@ -86,44 +86,43 @@ plugins:
 
 custom:
   fargate:
-    clusterName: Test
-    vpc:
-      cidr: 10.0.0.0/16
-      subnets:
-      - 10.0.0.0/24
-      - 10.0.1.0/24
-    tags:
-      customer: You
-      owner: Me
-    disableELB: false
-    services:
-    - name: example-name
-      cpu: 512
-      memory: 1024
-      port: 80
-      healthCheckUri: /health
-      healthCheckInterval: 6
-      imageTag: 1.0.0
-      imageRepository: xxx.amazonaws.com/xxx
-      autoScale:
-        min: 1
-        max: 10
-        cooldownIn: 30
-        cooldownOut: 60
-        metric: ECSServiceAverageCPUUtilization
-        targetValue: 75
-      entryPoint:
-      - npm
-      - run
-      - start
-      environment:
-        PRODUCTION: true
-      protocols:
-      - protocol: HTTP
-      - protocol: HTTPS
-        certificateArns:
-        - xxxx
-
+    - clusterName: Test
+      vpc:
+        cidr: 10.0.0.0/16
+        subnets:
+        - 10.0.0.0/24
+        - 10.0.1.0/24
+      tags:
+        customer: You
+        owner: Me
+      disableELB: false
+      services:
+      - name: example-name
+        cpu: 512
+        memory: 1024
+        port: 80
+        healthCheckUri: /health
+        healthCheckInterval: 6
+        imageTag: 1.0.0
+        imageRepository: xxx.amazonaws.com/xxx
+        autoScale:
+          min: 1
+          max: 10
+          cooldownIn: 30
+          cooldownOut: 60
+          metric: ECSServiceAverageCPUUtilization
+          targetValue: 75
+        entryPoint:
+        - npm
+        - run
+        - start
+        environment:
+          PRODUCTION: true
+        protocols:
+        - protocol: HTTP
+        - protocol: HTTPS
+          certificateArns:
+          - xxxx
 ```
 
 ####Outputs

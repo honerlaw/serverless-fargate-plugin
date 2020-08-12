@@ -12,7 +12,13 @@ export class Cluster extends Resource<IClusterOptions> {
     public readonly serviceName: string;
 
     public constructor(stage: string, options: IClusterOptions, vpc: VPC, serviceName: string, tags?: object) {
-        super(options, stage, `${serviceName}${options.clusterName}`, tags);
+        let namePrefix: string;
+        if (typeof options.clusterName === "undefined") {
+            namePrefix = serviceName;
+        } else {
+            namePrefix = options.clusterName;
+        }
+        super(options, stage, namePrefix, tags);
         this.vpc = vpc;
         this.serviceName = serviceName;
         this.services = this.options.services.map((serviceOptions: IServiceOptions): any => {

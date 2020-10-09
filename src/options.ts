@@ -65,6 +65,7 @@ export interface IServiceOptions {
 export interface IClusterOptions {
     public: boolean;
     disableELB?: boolean;
+    prefixWithServiceName?: boolean;
     clusterName: string;
     executionRoleArn?: string; // role for services, generated if not specfied
     vpc: IVPCOptions;

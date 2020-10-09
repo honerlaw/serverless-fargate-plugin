@@ -12,7 +12,12 @@ export class Cluster extends Resource<IClusterOptions> {
     public readonly serviceName: string;
 
     public constructor(stage: string, options: IClusterOptions, vpc: VPC, serviceName: string, tags?: object) {
-        super(options, stage, `${serviceName}${options.clusterName}`, tags);
+        // Default to prefixing with service name for backwards-compatability
+        let resourceName = options.prefixWithServiceName === false
+            ? options.clusterName
+            : `${serviceName}${options.clusterName}`;
+
+        super(options, stage, resourceName, tags);
         this.vpc = vpc;
         this.serviceName = serviceName;
         this.services = this.options.services.map((serviceOptions: IServiceOptions): any => {

@@ -61,7 +61,7 @@ export abstract class Resource<T> {
 
     public getName(namePostFix: NamePostFix): string {
         if (this.namePrefix) {
-            return (this.namePrefix + namePostFix.toString()).substr(0,32);
+            return ((this.namePrefix.charAt(0).toUpperCase() + this.namePrefix.slice(1)).replace(/\W/g, '') + namePostFix.toString()).substr(0,32);
         }
         return (namePostFix + this.stage).substr(0, 32);
     }

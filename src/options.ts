@@ -53,6 +53,7 @@ export interface IServiceOptions {
     entryPoint: string[]; //custom container entry point
     disableELB?: boolean; //useful for disabling ELB listeners on a cluster that has ELB and more tasks with ELB enabled
     hostname?: string | string[]; //optional hostname for filter on ELB 
+    limitSourceIPs?: string | string[]; //optional limit source IPs on ELB
     environment: { [key: string]: string };
     protocols: IServiceProtocolOptions[];
     image?: string;

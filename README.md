@@ -51,6 +51,7 @@ Array<{
         public: boolean; //Will it be facing internet? This affects directly what security groups will be auto created
         port: number; // docker port (the port exposed on the docker image) - if not specified random port will be used - usefull for busy private subnets 
         hostname?: string | string[]; //optional hostname for filter on ELB 
+        limitSourceIPs?: string | string[]; //optional limit source IPs on ELB
         disableELB?: boolean; //useful for disabling ELB listeners on a cluster that has ELB and more tasks with ELB enabled
         entryPoint: string[]; // same as docker's entry point
         environment: { [key: string]: string }; // environment variables passed to docker container

@@ -133,6 +133,13 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                                 "Values": (Array.isArray(this.service.getOptions().hostname) ? this.service.getOptions().hostname : [this.service.getOptions().hostname])
                             }
                         }] : [])
+                        ,
+                        ...(this.service.getOptions().limitSourceIPs ? [{
+                            "Field": "source-ip",
+                            "SourceIpConfig": {
+                                "Values": (Array.isArray(this.service.getOptions().limitSourceIPs) ? this.service.getOptions().limitSourceIPs : [this.service.getOptions().limitSourceIPs])
+                            }
+                        }] : [])
                     ],
                     "ListenerArn": (this.cluster.getOptions().elbListenerArn || {
                         "Ref": this.cluster.loadBalancer.getName(NamePostFix.LOAD_BALANCER_LISTENER) + this.port

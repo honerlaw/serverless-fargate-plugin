@@ -132,14 +132,22 @@ export class Protocol extends Resource<IServiceProtocolOptions> {
                             "HostHeaderConfig": {
                                 "Values": (Array.isArray(this.service.getOptions().hostname) ? this.service.getOptions().hostname : [this.service.getOptions().hostname])
                             }
-                        }] : [])
-                        ,
+                        }] : []),
                         ...(this.service.getOptions().limitSourceIPs ? [{
                             "Field": "source-ip",
                             "SourceIpConfig": {
                                 "Values": (Array.isArray(this.service.getOptions().limitSourceIPs) ? this.service.getOptions().limitSourceIPs : [this.service.getOptions().limitSourceIPs])
                             }
-                        }] : [])
+                        }] : []),
+                        ...(this.service.getOptions().limitHeaders ? this.service.getOptions().limitHeaders.map((obj) => {
+                            return {
+                                "Field": "http-header",
+                                "HttpHeaderConfig": {
+                                    "HttpHeaderName": obj.Name,
+                                    "Values": (Array.isArray(obj.Value) ? obj.Value : [obj.Value])
+                                }    
+                            }
+                        }) : []),
                     ],
                     "ListenerArn": (this.cluster.getOptions().elbListenerArn || {
                         "Ref": this.cluster.loadBalancer.getName(NamePostFix.LOAD_BALANCER_LISTENER) + this.port

@@ -54,6 +54,7 @@ export interface IServiceOptions {
     disableELB?: boolean; //useful for disabling ELB listeners on a cluster that has ELB and more tasks with ELB enabled
     hostname?: string | string[]; //optional hostname for filter on ELB 
     limitSourceIPs?: string | string[]; //optional limit source IPs on ELB
+    limitHeaders?: {Name: string, Value: string | string[]}[]; //optional limit headers on ELB
     environment: { [key: string]: string };
     protocols: IServiceProtocolOptions[];
     image?: string;

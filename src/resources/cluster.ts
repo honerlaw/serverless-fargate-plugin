@@ -58,7 +58,7 @@ export class Cluster extends Resource<IClusterOptions> {
     }
 
     public getClusterIngressSecGroup(): any {
-        return (this.isSharedCluster() ? this.options.clusterArns.ecsClusterArn : { "Ref": this.getName(NamePostFix.CONTAINER_SECURITY_GROUP) });
+        return (this.isSharedCluster() ? this.options.clusterArns.ecsIngressSecGroupId : { "Ref": this.getName(NamePostFix.CONTAINER_SECURITY_GROUP) });
     }
 
     /* Cloud Formation generation */

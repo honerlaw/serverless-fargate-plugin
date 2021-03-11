@@ -81,8 +81,8 @@ export interface IClusterOptions {
     timeout?: number; //ELB timeout, defaults to 30
     clusterName: string;
     clusterArns?: {
-        ecsClusterArn?: string;
-        ecsIngressSecGroupId?: string;
+        ecsClusterArn: string;
+        ecsIngressSecGroupId: string;
     };
     executionRoleArn?: string; // role for services, generated if not specfied
     vpc: IVPCOptions;

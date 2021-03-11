@@ -71,9 +71,7 @@ export class Service extends Resource<IServiceOptions> {
                 }),
                 "Properties": {
                     "ServiceName": this.getName(NamePostFix.SERVICE),
-                    "Cluster": {
-                        "Ref": this.cluster.getName(NamePostFix.CLUSTER)
-                    },
+                    "Cluster": this.cluster.getClusterRef(),
                     ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                     ...(this.hasTags() ? { "EnableECSManagedTags": true } : {}),
                     "LaunchType": "FARGATE",
@@ -268,7 +266,7 @@ export class Service extends Resource<IServiceOptions> {
     private getSecurityGroups(): any {
         if (this.cluster.getVPC().useExistingVPC()) {
             return this.cluster.getVPC().getSecurityGroups();  
-        } return [{ "Ref": this.cluster.getName(NamePostFix.CONTAINER_SECURITY_GROUP) }];
+        } return [ this.cluster.getClusterIngressSecGroup() ];
     }
 
     private getListenerRules(): string[] {
@@ -322,7 +320,7 @@ export class Service extends Resource<IServiceOptions> {
                             "/",
                             [
                                 "service", 
-                                { "Ref": this.cluster.getName(NamePostFix.CLUSTER) },
+                                this.cluster.getClusterRef(),
                                 { "Fn::GetAtt": [ this.getName(NamePostFix.SERVICE), "Name" ] }
                             ]
                         ]

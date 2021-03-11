@@ -32,6 +32,10 @@ Array<{
     disableELB?: boolean; //disable ELB creation and bindings, default to false. Usefull for long running processes
     elbListenerArn?: string; //optionally pass a ELB listener to use instead of create an ELB + listener -- carefull with ports, they must be the same pf the listener
     timeout?: number; //ELB timeout, defaults to 30
+    clusterArns?: { //Indicates if the cluster will not be created and an shared ECS cluster should be used instead
+        ecsClusterArn: string; //ECS cluster ARN
+        ecsIngressSecGroupId: string; //Ingress ECS VPC Group 
+    };
     vpc: {
         //if this options are specified it will create a VPC
         cidr: string;

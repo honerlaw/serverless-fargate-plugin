@@ -112,9 +112,7 @@ export class LoadBalancer extends Resource<IClusterOptions> {
                             "DeletionPolicy": "Delete",
                             "Properties": {
                                 "Description": `Ingress from the ALB - task ${service.getName(NamePostFix.SERVICE)}`,
-                                "GroupId": {
-                                    "Ref": this.cluster.getName(NamePostFix.CONTAINER_SECURITY_GROUP)
-                                },
+                                "GroupId": this.cluster.getClusterIngressSecGroup(),
                                 "IpProtocol": -1,
                                 "SourceSecurityGroupId": {
                                     "Ref": ELBServiceSecGroup
@@ -178,6 +176,7 @@ export class LoadBalancer extends Resource<IClusterOptions> {
                         throw new Error(`Serverless: fargate-plugin: Service ${service.getOptions().name} on cluster ${this.cluster.getName(NamePostFix.CLUSTER)}, protocol ${proto.getOptions().protocol} is colliding with different service at same cluster on port ${proto.port}. Can't continue!`);
                     }
                     mappings[proto.port].services.push(service);
+                    //TODO: create error if using shared ecs, ports should be dynamically found
                 } else mappings[proto.port] = { proto, services: [service]};
             }
         }

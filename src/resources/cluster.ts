@@ -22,6 +22,7 @@ export class Cluster extends Resource<IClusterOptions> {
         this.loadBalancer = new LoadBalancer(stage, options, this, tags);
     }
 
+    /* Getters */
     public getExecutionRoleArn(): string | undefined {
         return this.options.executionRoleArn;
     }
@@ -47,39 +48,37 @@ export class Cluster extends Resource<IClusterOptions> {
         return this.options.public;
     }
 
-    public generate(): any {
-
-        // generate the defs for each service
-        const defs: any[] = this.services.map((service: Service): any => service.generate());
-
-        return Object.assign({
-            [this.getName(NamePostFix.CLUSTER)]: {
-                "Type": "AWS::ECS::Cluster",
-                "DeletionPolicy": "Delete",
-                "Properties": {
-                    "ClusterName": this.getName(NamePostFix.CLUSTER),
-                    ...(this.getTags() ? { "Tags": this.getTags() } : {}),
-                }
-            },
-            ...this.getClusterSecurityGroups(),
-            ...this.loadBalancer.generate(),
-        }, ...defs);
+    public isSharedCluster(): boolean {
+        return !!(this.options.clusterArns && this.options.clusterArns.ecsClusterArn && this.options.clusterArns.ecsClusterArn != 'null' && 
+                  this.options.clusterArns.ecsIngressSecGroupId && this.options.clusterArns.ecsIngressSecGroupId != 'null');
     }
 
-    public getServiceListenerPriority(service: Service, protocol: Protocol): number {
-        //Get ordered services
-        const oServices = this.services.sort( (a,b) => {
-            if (!a.getOptions().priority && !b.getOptions().priority) return 0; //dec order
-            if (!a.getOptions().priority) return 1;
-            if (!b.getOptions().priority) return -1;
-            return a.getOptions().priority - b.getOptions().priority;
-        });
-        let p = 1; //starts at 1 by AWS def
-        for (let service of oServices) {
-            if (service == service) {
-                return p + (service.protocols.indexOf(protocol) + 1);
-            } else p += service.protocols.length; //increase by proto count
-        } return -1; //not found
+    public getClusterRef(): any {
+        return (this.isSharedCluster() ? this.options.clusterArns.ecsClusterArn : { "Ref": this.getName(NamePostFix.CLUSTER) } )
+    }
+
+    public getClusterIngressSecGroup(): any {
+        return (this.isSharedCluster() ? this.options.clusterArns.ecsClusterArn : { "Ref": this.getName(NamePostFix.CONTAINER_SECURITY_GROUP) });
+    }
+
+    /* Cloud Formation generation */
+    public generate(): any {
+        // generate the defs for each service
+        const defs: any[] = this.services.map((service: Service): any => service.generate());
+        return Object.assign({
+            ...(this.isSharedCluster() ? {} : {
+                [this.getName(NamePostFix.CLUSTER)]: {
+                    "Type": "AWS::ECS::Cluster",
+                    "DeletionPolicy": "Delete",
+                    "Properties": {
+                        "ClusterName": this.getName(NamePostFix.CLUSTER),
+                        ...(this.getTags() ? { "Tags": this.getTags() } : {}),
+                    }
+                },
+                ...this.getClusterSecurityGroups(),
+            }),
+            ...this.loadBalancer.generate(),
+        }, ...defs);
     }
 
     private getClusterSecurityGroups(): any {
@@ -111,5 +110,22 @@ export class Cluster extends Resource<IClusterOptions> {
                 }
             };
         }
+    }
+    
+    /* Utils */
+    public getServiceListenerPriority(service: Service, protocol: Protocol): number {
+        //Get ordered services
+        const oServices = this.services.sort((a, b) => {
+            if (!a.getOptions().priority && !b.getOptions().priority) return 0; //dec order
+            if (!a.getOptions().priority) return 1;
+            if (!b.getOptions().priority) return -1;
+            return a.getOptions().priority - b.getOptions().priority;
+        });
+        let p = 1; //starts at 1 by AWS def
+        for (let service of oServices) {
+            if (service == service) {
+                return p + (service.protocols.indexOf(protocol) + 1);
+            } else p += service.protocols.length; //increase by proto count
+        } return -1; //not found
     }
 }

@@ -55,7 +55,7 @@ export interface IServiceOptions {
     hostname?: string | string[]; //optional hostname for filter on ELB 
     limitSourceIPs?: string | string[]; //optional limit source IPs on ELB
     limitHeaders?: {Name: string, Value: string | string[]}[]; //optional limit headers on ELB
-    environment: { [key: string]: string };
+    environment?: { [key: string]: string };
     protocols: IServiceProtocolOptions[];
     image?: string;
     imageRepository?: string;
@@ -63,6 +63,7 @@ export interface IServiceOptions {
     priority?: number; // priority for routing, defaults to 1
     path?: string | { path: string, method?: string }[]; // path the LB should send traffic to, defaults '*' (everything)
     desiredCount?: number; // defaults to 1
+    shouldUseEC2?: boolean; //defaults to false, if true will laucnh task into EC2
     autoScale?: IServiceAutoScalingOptions;
     taskRoleArn?: string;
     healthCheckUri?: string; // defaults to "/"

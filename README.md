@@ -53,10 +53,10 @@ Array<{
         cpu: number;
         memory: number;
         public: boolean; //Will it be facing internet? This affects directly what security groups will be auto created
-        port: number; // docker port (the port exposed on the docker image) - if not specified random port will be used - usefull for busy private subnets 
+        port: number; // docker port (the port exposed on the docker image) - if not specified random port will be used (usefull for EC2 task types or busy private subnets where new services (and **re-deployments**) are allowed to have random listener ports)
         hostname?: string | string[]; //optional hostname for filter on ELB 
-        limitSourceIPs?: string | string[]; //optional limit source IPs on ELB
-        limitHeaders?: {Name: string, Value: string | string[]}[]; //optional limit headers on ELB
+        limitSourceIPs?: string | string[]; //optional limit source IPs on ELB (only request made by the specified source IPs are allowed)
+        limitHeaders?: {Name: string, Value: string | string[]}[]; //optional limit headers on ELB (only requests made with the specified headers are allowed)
         disableELB?: boolean; //useful for disabling ELB listeners on a cluster that has ELB and more tasks with ELB enabled
         entryPoint: string[]; // same as docker's entry point
         environment: { [key: string]: string }; // environment variables passed to docker container
@@ -69,7 +69,7 @@ Array<{
               poolDomain: string;
             }; //available on HTTPS only
         }>;
-        autoScale: {
+        autoScale?: {
               min?: number; //default to 1
               max?: number; //default to 1
               metric: AutoScalingMetricType;
@@ -84,6 +84,7 @@ Array<{
         priority?: number; // priority for routing, defaults to 1
         path?: string | { path: string, method?: string }[]; // path the LB should send traffic to, defaults '*' (everything) - keyword 'ANY' is allowed on method
         desiredCount?: number; // number of tasks wanted by default - if not specified defaults to 1
+        shouldUseEC2?: boolean; //defaults to false, if true will launch task into EC2
         taskRoleArn?: string;
         healthCheckUri?: string; // defaults to "/"
         healthCheckProtocol?: string; // defaults to "HTTP"

@@ -74,19 +74,19 @@ export class Service extends Resource<IServiceOptions> {
                     "Cluster": this.cluster.getClusterRef(),
                     ...(this.getTags() ? { "Tags": this.getTags() } : {}),
                     ...(this.hasTags() ? { "EnableECSManagedTags": true } : {}),
-                    "LaunchType": "FARGATE",
+                    "LaunchType": (this.options.shouldUseEC2 ? "EC2" : "FARGATE"),
                     "DeploymentConfiguration": {
                         "MaximumPercent": 200,
                         "MinimumHealthyPercent": 75
                     },
                     "DesiredCount": this.options.desiredCount ? this.options.desiredCount : 1,
-                    "NetworkConfiguration": {
+                    ...(!this.options.shouldUseEC2 ? {"NetworkConfiguration": {
                         "AwsvpcConfiguration": {
                             "AssignPublicIp": (this.cluster.isPublic() ? "ENABLED" : "DISABLED"),
                             "SecurityGroups": this.getSecurityGroups(),
                             "Subnets": this.cluster.getVPC().getSubnets()
                         }
-                    },
+                    }} : {}),
                     "TaskDefinition": {
                         "Ref": this.getName(NamePostFix.TASK_DEFINITION)
                     },
@@ -116,9 +116,9 @@ export class Service extends Resource<IServiceOptions> {
                     "Family": `${this.getName(NamePostFix.TASK_DEFINITION)}`,
                     "Cpu": this.options.cpu,
                     "Memory": this.options.memory,
-                    "NetworkMode": "awsvpc",
+                    "NetworkMode": (this.options.shouldUseEC2 ? 'bridge' : "awsvpc"),
                     "RequiresCompatibilities": [
-                        "FARGATE"
+                        (this.options.shouldUseEC2 ? "EC2" : "FARGATE"),
                     ],
                     "ExecutionRoleArn": this.getExecutionRoleValue(),
                     "TaskRoleArn": this.options.taskRoleArn ? this.options.taskRoleArn : ({
@@ -173,10 +173,10 @@ export class Service extends Resource<IServiceOptions> {
                     "HealthCheckProtocol": proto,
                     "HealthCheckTimeoutSeconds": this.options.healthCheckTimeout ? this.options.healthCheckTimeout : 5,
                     "HealthyThresholdCount": this.options.healthCheckHealthyCount ? this.options.healthCheckHealthyCount : 2,
-                    "TargetType": "ip",
+                    "TargetType": (this.options.shouldUseEC2 ? "instance" : "ip"),
                     // "Name": this.getName(NamePostFix.TARGET_GROUP), -- should not be set - allow replacement
                     "Port": this.ports[0],
-                    "Protocol": "HTTP",
+                    "Protocol": "HTTP", //inside vpc we theorically are good, but HTTPS should be implement on the future for sure. TODO
                     "UnhealthyThresholdCount": this.options.healthCheckUnhealthyCount ? this.options.healthCheckUnhealthyCount : 2,
                     "VpcId": this.cluster.getVPC().getRefName()
                 }

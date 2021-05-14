@@ -47,6 +47,8 @@ Array<{
         vpcId: string;
         securityGroupIds: string[]
         subnetIds: string[]
+        //If not specified, subnetIds will be used
+        elbSubnetIds: string[]
     };
     services: Array<{
         name: string; // name of the service

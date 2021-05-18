@@ -6,7 +6,7 @@ export interface IVPCOptions {
     vpcId: string;
     securityGroupIds: string[];
     subnetIds: string[];
-    elbSubnetIds: string[];
+    elbSubnetIds?: string[];
 }
 
 export interface IServiceProtocolOptions {

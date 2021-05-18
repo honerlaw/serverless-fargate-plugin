@@ -48,7 +48,7 @@ Array<{
         securityGroupIds: string[]
         subnetIds: string[]
         //If not specified, subnetIds will be used
-        elbSubnetIds: string[]
+        elbSubnetIds?: string[]
     };
     services: Array<{
         name: string; // name of the service

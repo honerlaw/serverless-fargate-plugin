@@ -37,6 +37,10 @@ export class VPC extends Resource<IVPCOptions> {
         })));
     }
 
+    public getELBSubnets(): any[] {
+        return ((this.useExistingVPC() && this.options.elbSubnetIds.length > 0) ? this.options.elbSubnetIds : this.getSubnets());
+    }
+
     public generate(): any {
         const vpc: string = this.options.cidr;
         const subnets: string[] = this.options.subnets;

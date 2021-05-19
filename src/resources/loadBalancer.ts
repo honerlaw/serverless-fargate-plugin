@@ -33,7 +33,7 @@ export class LoadBalancer extends Resource<IClusterOptions> {
                                     "Value": (this.options.timeout || 30)
                                 }
                             ],
-                            "Subnets": this.cluster.getVPC().getSubnets(),
+                            "Subnets": this.cluster.getVPC().getELBSubnets(),
                             "SecurityGroups": this.getELBSecurityGroupsRef()
                         },
                     },

@@ -16,7 +16,6 @@ export class Cluster extends Resource<IClusterOptions> {
         let resourceName = options.prefixWithServiceName === false
         ? options.clusterName
         : `${serviceName}${options.clusterName}`;
-
         super(options, stage, resourceName, tags);
         this.vpc = vpc;
         this.serviceName = serviceName;

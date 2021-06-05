@@ -10,7 +10,11 @@ export class LoadBalancer extends Resource<IClusterOptions> {
     private readonly cluster: Cluster;
 
     public constructor(stage: string, options: IClusterOptions, cluster: Cluster, tags?: object) {
-        super(options, stage, `${cluster.serviceName}${options.clusterName}`, tags);
+        // Default to prefixing with service name for backwards-compatability
+        let resourceName = options.prefixWithServiceName === false
+        ? options.clusterName
+        : `${cluster.serviceName}${options.clusterName}`;
+        super(options, stage, resourceName, tags);
         this.cluster = cluster;
     }
 
